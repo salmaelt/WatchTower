@@ -1,0 +1,15 @@
+# Node
+client/node_modules
+client/dist
+
+# Dotnet
+**/bin/
+**/obj/
+server/TheftApi/Migrations/*Designer.cs
+
+# Env
+**/.env*
+!client/.env.example
+
+# Misc
+.DS_Store
