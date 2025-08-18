@@ -1,0 +1,49 @@
+# --- Build output ---
+**/bin/
+**/obj/
+**/out/
+**/artifacts/
+**/publish/
+
+# --- IDEs / Editors ---
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+.vscode/
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+
+# --- Logs / temps ---
+*.log
+logs/
+*.tmp
+~$*
+*.swp
+*.swo
+
+# --- Tests / coverage ---
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+*.trx
+
+# --- Local config (keep secrets out of git) ---
+.env
+.env.*
+appsettings.Local.json
+appsettings.*.Local.json
+
+# --- Rider / IntelliJ artifacts ---
+*.iml
+
+# --- NuGet cache (rarely appears here, but safe) ---
+*.nupkg
+*.snupkg
+.nuget/
