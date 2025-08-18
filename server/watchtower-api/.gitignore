@@ -35,6 +35,7 @@ coverage/
 *.trx
 
 # --- Local config (keep secrets out of git) ---
+*.env
 .env
 .env.*
 appsettings.Local.json
