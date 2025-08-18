@@ -1,3 +1,4 @@
+//Domain/User.cs
 namespace WatchtowerApi.Domain
 {
     public class User
