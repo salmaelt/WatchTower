@@ -1,44 +1,50 @@
+//Program.cs
 using Microsoft.EntityFrameworkCore;
-using WatchtowerApi.Domain;
+using WatchtowerApi.Infrastructure;
 
+// Builder instance for making the web app
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// Controllers + Swagger
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
+// EF Core: PostgreSQL + PostGIS (NetTopologySuite), sets up database integration
+builder.Services.AddDbContext<AppDbContext>(opt =>
+    opt.UseNpgsql(
+        builder.Configuration.GetConnectionString("Default"),
+        npg => npg.UseNetTopologySuite()          // <-- enables geometry(Point,4326)
+    )
+);
+
+// Cors Setup for React with Vite frontend.
+builder.Services.AddCors(o =>
+{
+    o.AddDefaultPolicy(p =>
+        p.WithOrigins("http://localhost:5173")    // Vite default
+         .AllowAnyHeader()
+         .AllowAnyMethod());
+});
+
+// Construct Web App from above builder instance
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Middleware For development only
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
+// General Middleware
 app.UseHttpsRedirection();
+app.UseCors();     // must be before MapControllers if you want it to apply to all endpoints
+// (Add auth later) app.UseAuthentication();
+// (Add auth later) app.UseAuthorization();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+// Load Controllers
+app.MapControllers();
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
+// Run the backend
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
