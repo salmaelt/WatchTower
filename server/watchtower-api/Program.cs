@@ -51,5 +51,9 @@ app.UseCors();     // must be before MapControllers if you want it to apply to a
 // Load Controllers
 app.MapControllers();
 
+// DB Health check endpoint
+app.MapGet("/db/health", async (AppDbContext db) =>
+    Results.Ok(new { connected = await db.Database.CanConnectAsync() }));
+
 // Run the backend
 app.Run();
