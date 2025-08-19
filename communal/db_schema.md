@@ -3,6 +3,7 @@
 ## Users
 - **id**: BIGINT PK — Primary key
 - **username**: TEXT — Unique username
+- **email**: TEXT - User email address
 - **password_hash**: TEXT — Hashed password
 - **is_admin**: BOOLEAN — Is the user an admin?
 - **created_at**: TIMESTAMPTZ — When the user was created
@@ -25,3 +26,4 @@
 - **comment_text**: TEXT — Text of the comment
 - **created_at**: TIMESTAMPTZ — When the comment was created
 
+![Erd diagram](erd.png)

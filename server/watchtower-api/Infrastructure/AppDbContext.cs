@@ -37,6 +37,15 @@ namespace WatchtowerApi.Infrastructure
                 .IsUnique()
                 .HasDatabaseName("users_username_idx");
 
+                e.Property(x => x.Email)            // Email (Text)
+                    .HasColumnType("text")
+                    .IsRequired()
+                    .HasColumnName("email");
+
+                e.HasIndex(x => x.Email)                           
+                    .IsUnique()
+                    .HasDatabaseName("users_email_idx");
+
                 e.Property(x => x.PasswordHash)     // Hashed Password (Text)
                 .HasColumnType("text")
                 .IsRequired()
