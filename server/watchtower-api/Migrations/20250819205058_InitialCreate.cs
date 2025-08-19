@@ -46,6 +46,7 @@ namespace watchtower_api.Migrations
                     location = table.Column<Point>(type: "geometry(Point,4326)", nullable: false),
                     status = table.Column<string>(type: "text", nullable: false),
                     created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    updated_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: true),
                     upvotes = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
                 },
                 constraints: table =>
@@ -56,7 +57,7 @@ namespace watchtower_api.Migrations
                         column: x => x.user_id,
                         principalTable: "users",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -68,7 +69,8 @@ namespace watchtower_api.Migrations
                     report_id = table.Column<long>(type: "bigint", nullable: false),
                     user_id = table.Column<long>(type: "bigint", nullable: false),
                     comment_text = table.Column<string>(type: "text", nullable: false),
-                    created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    upvotes = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
                 },
                 constraints: table =>
                 {
@@ -84,8 +86,63 @@ namespace watchtower_api.Migrations
                         column: x => x.user_id,
                         principalTable: "users",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "report_upvotes",
+                columns: table => new
+                {
+                    report_id = table.Column<long>(type: "bigint", nullable: false),
+                    user_id = table.Column<long>(type: "bigint", nullable: false),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_report_upvotes", x => new { x.report_id, x.user_id });
+                    table.ForeignKey(
+                        name: "FK_report_upvotes_reports_report_id",
+                        column: x => x.report_id,
+                        principalTable: "reports",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_report_upvotes_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "comment_upvotes",
+                columns: table => new
+                {
+                    comment_id = table.Column<long>(type: "bigint", nullable: false),
+                    user_id = table.Column<long>(type: "bigint", nullable: false),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_comment_upvotes", x => new { x.comment_id, x.user_id });
+                    table.ForeignKey(
+                        name: "FK_comment_upvotes_comments_comment_id",
+                        column: x => x.comment_id,
+                        principalTable: "comments",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_comment_upvotes_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_comment_upvotes_user_id",
+                table: "comment_upvotes",
+                column: "user_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_comments_report_id",
@@ -95,6 +152,11 @@ namespace watchtower_api.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_comments_user_id",
                 table: "comments",
+                column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_report_upvotes_user_id",
+                table: "report_upvotes",
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
@@ -124,6 +186,12 @@ namespace watchtower_api.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "comment_upvotes");
+
+            migrationBuilder.DropTable(
+                name: "report_upvotes");
+
             migrationBuilder.DropTable(
                 name: "comments");
 

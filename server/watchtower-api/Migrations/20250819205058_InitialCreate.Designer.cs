@@ -13,8 +13,8 @@ using WatchtowerApi.Infrastructure;
 namespace watchtower_api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250819133415_initial")]
-    partial class initial
+    [Migration("20250819205058_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -51,6 +51,12 @@ namespace watchtower_api.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("report_id");
 
+                    b.Property<int>("Upvotes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("upvotes");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
                         .HasColumnName("user_id");
@@ -62,6 +68,29 @@ namespace watchtower_api.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("comments", (string)null);
+                });
+
+            modelBuilder.Entity("WatchtowerApi.Domain.CommentUpvote", b =>
+                {
+                    b.Property<long>("CommentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("comment_id");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.HasKey("CommentId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("comment_upvotes", (string)null);
                 });
 
             modelBuilder.Entity("WatchtowerApi.Domain.Report", b =>
@@ -103,6 +132,10 @@ namespace watchtower_api.Migrations
                         .HasColumnType("text")
                         .HasColumnName("type");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("updated_at");
+
                     b.Property<int>("Upvotes")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -123,6 +156,29 @@ namespace watchtower_api.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("reports", (string)null);
+                });
+
+            modelBuilder.Entity("WatchtowerApi.Domain.ReportUpvote", b =>
+                {
+                    b.Property<long>("ReportId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("report_id");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.HasKey("ReportId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("report_upvotes", (string)null);
                 });
 
             modelBuilder.Entity("WatchtowerApi.Domain.User", b =>
@@ -183,10 +239,29 @@ namespace watchtower_api.Migrations
                     b.HasOne("WatchtowerApi.Domain.User", "User")
                         .WithMany("Comments")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Report");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("WatchtowerApi.Domain.CommentUpvote", b =>
+                {
+                    b.HasOne("WatchtowerApi.Domain.Comment", "Comment")
+                        .WithMany("UpvoteUsers")
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WatchtowerApi.Domain.User", "User")
+                        .WithMany("CommentUpvotes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Comment");
 
                     b.Navigation("User");
                 });
@@ -196,15 +271,48 @@ namespace watchtower_api.Migrations
                     b.HasOne("WatchtowerApi.Domain.User", "User")
                         .WithMany("Reports")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("WatchtowerApi.Domain.ReportUpvote", b =>
+                {
+                    b.HasOne("WatchtowerApi.Domain.Report", "Report")
+                        .WithMany("UpvoteUsers")
+                        .HasForeignKey("ReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WatchtowerApi.Domain.User", "User")
+                        .WithMany("ReportUpvotes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Report");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("WatchtowerApi.Domain.Comment", b =>
+                {
+                    b.Navigation("UpvoteUsers");
+                });
+
+            modelBuilder.Entity("WatchtowerApi.Domain.Report", b =>
+                {
+                    b.Navigation("UpvoteUsers");
+                });
+
             modelBuilder.Entity("WatchtowerApi.Domain.User", b =>
                 {
+                    b.Navigation("CommentUpvotes");
+
                     b.Navigation("Comments");
+
+                    b.Navigation("ReportUpvotes");
 
                     b.Navigation("Reports");
                 });

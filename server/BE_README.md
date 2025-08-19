@@ -92,3 +92,12 @@ A practical plan for **watchtower-api** built with ASP.NET Core, EF Core, Postgr
 **Migrations**
 - First migration: create tables, FKs, indexes, and enable PostGIS.
 - Neon-compatible connection string (with SSL).
+
+How to Migrate the DB and setup EFCORE:
+```bash
+# from the API project folder
+dotnet ef database drop -f
+rm -rf Migrations
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+```
