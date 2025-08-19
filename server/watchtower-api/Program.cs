@@ -11,9 +11,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // EF Core: PostgreSQL + PostGIS (NetTopologySuite), sets up database integration
+var conn = builder.Configuration.GetConnectionString("Default");
+if (string.IsNullOrWhiteSpace(conn))
+{
+    throw new InvalidOperationException("Unable to read connection string");
+}
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(
-        builder.Configuration.GetConnectionString("Default"),
+        conn,
         npg => npg.UseNetTopologySuite()          // <-- enables geometry(Point,4326)
     )
 );

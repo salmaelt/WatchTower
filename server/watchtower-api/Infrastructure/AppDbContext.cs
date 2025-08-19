@@ -1,6 +1,5 @@
 //Infrastructure/AppDbContext.cs
 using Microsoft.EntityFrameworkCore;
-using NetTopologySuite.Geometries;
 using WatchtowerApi.Domain;
 
 namespace WatchtowerApi.Infrastructure
@@ -163,7 +162,6 @@ namespace WatchtowerApi.Infrastructure
                 // e.HasIndex(x => x.ReportId).HasDatabaseName("comments_report_id_idx");
                 // e.HasIndex(x => x.UserId).HasDatabaseName("comments_user_id_idx");
             });
-}
-
+        }
     }
 }
