@@ -2,7 +2,8 @@
 import "leaflet/dist/leaflet.css"
 import './App.css';
 
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet"
+
+import { MapContainer, MapLibreTileLayer, Marker, Popup } from "react-leaflet"
 import L, { Icon, divIcon } from "leaflet";
 import Supercluster from "supercluster";
 import { useEffect, useMemo, useState } from "react";
@@ -26,37 +27,28 @@ export default function App() {
     }
   ];
 
-  const createCustomClusterIcon = (cluster) => {
-    return new divIcon({
-      html: `<div class="cluster-icon">${cluster.getChildCount()}</div>`,
-      className: "custom-marker-cluster",
-      iconSize: point(33, 33, true)
-    })
-  }
   const custIcon = new Icon({
     iconUrl: require("./img/marker.png"),
     iconSize: [38, 38]
   })
+
   return (
     <MapContainer 
       center={[51.5072, 0.1276]} 
       zoom={13} 
       style={{height:"100vh"}}
-    >
-
-      <TileLayer url='https://tile.openstreetmap.org/{z}/{x}/{y}.png'/>
-      
-      <MarkerClusterGroup 
-        chunkedLoading
-        iconCreateFunction={createCustomClusterIcon}
       >
+
+      <MapLibreTileLayer
+        attribution='&copy; <a href="https://stadiamaps.com/" target="_blank">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
+        url="https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json"
+      />
 
       {markers.map(marker =>
         <Marker position={marker.geocode} icon={custIcon}>
           <Popup>{marker.popUp}</Popup>
         </Marker>
       )}
-      </MarkerClusterGroup>
     </MapContainer>
   );
 }
