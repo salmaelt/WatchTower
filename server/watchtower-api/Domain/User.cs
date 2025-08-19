@@ -8,6 +8,7 @@ namespace WatchtowerApi.Domain
 
         // Fields
         public string Username { get; set; } = default!;
+        public string Email { get; set; } = default!;
         public string PasswordHash { get; set; } = default!;
         public bool IsAdmin { get; set; }
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
