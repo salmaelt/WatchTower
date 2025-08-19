@@ -15,5 +15,9 @@ namespace WatchtowerApi.Domain
         // Fields
         public string CommentText { get; set; } = default!;
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+        public int Upvotes { get; set; } = 0;
+
+        // Navigation
+        public ICollection<CommentUpvote> UpvoteUsers { get; } = new HashSet<CommentUpvote>();
     }
 }
