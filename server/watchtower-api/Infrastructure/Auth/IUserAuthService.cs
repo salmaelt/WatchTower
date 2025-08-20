@@ -1,6 +1,6 @@
 using WatchtowerApi.Domain;
 
-namespace WatchtowerApi.Infrastructure.Repositories;
+namespace WatchtowerApi.Infrastructure.Auth;
 
 public interface IUserAuthService
 {
