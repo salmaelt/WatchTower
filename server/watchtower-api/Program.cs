@@ -1,6 +1,9 @@
 //Program.cs
 using Microsoft.EntityFrameworkCore;
 using WatchtowerApi.Infrastructure;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 // Builder instance for making the web app
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +25,34 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
         npg => npg.UseNetTopologySuite()          // <-- enables geometry(Point,4326)
     )
 );
+
+// Authentication Setup with JWTs
+var issuer   = builder.Configuration["Jwt:Issuer"];
+var audience = builder.Configuration["Jwt:Audience"];
+var key = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(issuer) ||
+    string.IsNullOrWhiteSpace(audience) ||
+    string.IsNullOrWhiteSpace(key))
+{
+    throw new InvalidOperationException("JWT configuration missing (Jwt:Issuer/Audience/Key).");
+}
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateIssuerSigningKey = true,
+
+                ValidIssuer = issuer,
+                ValidAudience = audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+});
 
 // Cors Setup for React with Vite frontend.
 builder.Services.AddCors(o =>
@@ -45,7 +76,7 @@ if (app.Environment.IsDevelopment())
 // General Middleware
 app.UseHttpsRedirection();
 app.UseCors();     // must be before MapControllers if you want it to apply to all endpoints
-// (Add auth later) app.UseAuthentication();
+app.UseAuthentication();
 // (Add auth later) app.UseAuthorization();
 
 // Load Controllers

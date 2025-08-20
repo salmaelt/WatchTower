@@ -5,6 +5,7 @@ using NetTopologySuite.Geometries;
 using System.Globalization;
 using WatchtowerApi.Contracts;
 using WatchtowerApi.Domain;
+using WatchtowerApi.Infrastructure.Repositories;
 
 namespace WatchtowerApi.Controllers
 {
@@ -183,19 +184,4 @@ namespace WatchtowerApi.Controllers
             return long.TryParse(idClaim?.Value, out var id) ? id : null;
         }
     }
-
-    // Repository contract (simplified)
-    public interface IReportRepository
-    {
-        Task<BboxQueryResult> QueryInBBoxAsync(Envelope bbox, List<string>? types, DateTimeOffset? from, DateTimeOffset? to, long? currentUserId, CancellationToken ct);
-        Task<Report?> GetByIdAsync(long id, CancellationToken ct);
-        Task<bool> ExistsAsync(long id, CancellationToken ct);
-        Task<bool> HasUserUpvotedAsync(long reportId, long userId, CancellationToken ct);
-        Task<Report> AddAsync(Report report, CancellationToken ct);
-        Task UpdateAsync(Report report, CancellationToken ct);
-        Task<UpvoteState> ToggleUpvoteAsync(long reportId, long userId, CancellationToken ct);
-    }
-
-    public record BboxQueryResult(IEnumerable<Report> Items, HashSet<long> UpvotedIds);
-    public record UpvoteState(int Upvotes, bool UpvotedByMe);
 }
