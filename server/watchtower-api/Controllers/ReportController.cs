@@ -31,22 +31,7 @@ namespace WatchtowerApi.Controllers
             [FromQuery] DateTimeOffset? to,
             CancellationToken ct)
         {
-            if (!TryParseBbox(bbox, out var env))
-                return Problem("Invalid bbox", statusCode: 400);
-
-            var userId = GetUserId();
-            var result = await _repo.QueryInBBoxAsync(env, type, from, to, userId, ct);
-
-            var fc = new GeoJsonFeatureCollection<ReportPropertiesDto>
-            {
-                Features = result.Items.Select(r =>
-                    new GeoJsonFeature<ReportPropertiesDto>
-                    {
-                        Geometry = new GeoJsonPoint { Coordinates = [r.Location.X, r.Location.Y] },
-                        Properties = ToPropsDto(r, result.UpvotedIds.Contains(r.Id))
-                    }).ToList()
-            };
-            return Ok(fc);
+            throw new NotImplementedException();
         }
 
         // GET /reports/{id}
@@ -55,17 +40,7 @@ namespace WatchtowerApi.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetReport(long id, CancellationToken ct)
         {
-            var userId = GetUserId();
-            var r = await _repo.GetByIdAsync(id, ct);
-            if (r is null) return NotFound();
-
-            var upvotedByMe = userId.HasValue && await _repo.HasUserUpvotedAsync(id, userId.Value, ct);
-
-            return Ok(new GeoJsonFeature<ReportPropertiesDto>
-            {
-                Geometry = new GeoJsonPoint { Coordinates = [r.Location.X, r.Location.Y] },
-                Properties = ToPropsDto(r, upvotedByMe)
-            });
+            throw new NotImplementedException();
         }
 
         // POST /reports
@@ -76,32 +51,7 @@ namespace WatchtowerApi.Controllers
         [ProducesResponseType(401)]
         public async Task<IActionResult> CreateReport([FromBody] CreateReportRequest body, CancellationToken ct)
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-
-            var userId = GetUserId();
-            if (!userId.HasValue) return Unauthorized();
-
-            var entity = new Report
-            {
-                UserId = userId.Value,
-                Type = body.Type.Trim(),
-                Description = body.Description.Trim(),
-                OccurredAt = body.OccurredAt,
-                Location = new Point(body.Lng, body.Lat) { SRID = 4326 },
-                Status = "open",
-                CreatedAt = DateTimeOffset.UtcNow
-            };
-
-            var created = await _repo.AddAsync(entity, ct);
-            var response = new CreateReportResponse
-            {
-                Id = created.Id,
-                Status = created.Status,
-                CreatedAt = created.CreatedAt,
-                UpdatedAt = created.UpdatedAt
-            };
-
-            return CreatedAtAction(nameof(GetReport), new { id = created.Id }, response);
+            throw new NotImplementedException();
         }
 
         // PATCH /reports/{id}
@@ -114,20 +64,7 @@ namespace WatchtowerApi.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> UpdateReport(long id, [FromBody] UpdateReportRequest body, CancellationToken ct)
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-
-            var userId = GetUserId();
-            if (!userId.HasValue) return Unauthorized();
-
-            var r = await _repo.GetByIdAsync(id, ct);
-            if (r is null) return NotFound();
-            if (r.UserId != userId && !User.IsInRole("admin")) return Forbid();
-
-            r.Description = body.Description.Trim();
-            r.UpdatedAt = DateTimeOffset.UtcNow;
-            await _repo.UpdateAsync(r, ct);
-
-            return Ok(new UpdateReportResponse { Id = r.Id, UpdatedAt = r.UpdatedAt!.Value });
+            throw new NotImplementedException();
         }
 
         // PATCH /reports/{id}/upvote
@@ -138,14 +75,7 @@ namespace WatchtowerApi.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> ToggleUpvote(long id, CancellationToken ct)
         {
-            var userId = GetUserId();
-            if (!userId.HasValue) return Unauthorized();
-
-            var exists = await _repo.ExistsAsync(id, ct);
-            if (!exists) return NotFound();
-
-            var state = await _repo.ToggleUpvoteAsync(id, userId.Value, ct);
-            return Ok(new ReportUpvoteStateDto { Id = id, Upvotes = state.Upvotes, UpvotedByMe = state.UpvotedByMe });
+            throw new NotImplementedException();
         }
 
         // Helpers

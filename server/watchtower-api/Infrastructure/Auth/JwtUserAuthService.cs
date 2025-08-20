@@ -18,7 +18,7 @@ public sealed class JwtUserAuthService : IUserAuthService
         // Prefer appsettings; fall back to dev defaults
         _issuer = cfg["Jwt:Issuer"]    ?? "watchtower-api";
         _audience = cfg["Jwt:Audience"]?? "watchtower-web";
-        _signingKey = cfg["Jwt:Key"]   ?? "dev-only-super-secret-change-me-please";
+        _signingKey = cfg["Jwt:Key"]   ?? throw new InvalidOperationException("Jwt:Key missing");
     }
 
     public string HashPassword(string password) =>
@@ -30,6 +30,8 @@ public sealed class JwtUserAuthService : IUserAuthService
     public string GenerateJwtToken(User user)
     {
         var now = DateTime.UtcNow;
+
+        // Information as part of the JWT
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
@@ -38,6 +40,7 @@ public sealed class JwtUserAuthService : IUserAuthService
             new Claim(ClaimTypes.Role, user.IsAdmin ? "admin" : "user"),
         };
 
+        // The token itself
         var creds = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_signingKey)),
             SecurityAlgorithms.HmacSha256);
