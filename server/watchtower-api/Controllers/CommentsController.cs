@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using WatchtowerApi.Domain;
 using WatchtowerApi.Infrastructure;
 
+// FE -> JSON -> DTO -> Models -> Repository -> Model -> DTO -> JSON
+
 namespace WatchtowerApi.Controllers
 {
     [Route("api/[controller]")]
