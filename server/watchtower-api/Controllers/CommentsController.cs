@@ -7,104 +7,56 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WatchtowerApi.Domain;
 using WatchtowerApi.Infrastructure;
+using WatchtowerApi.Infrastructure.Repositories;
+using WatchtowerApi.Contracts;
+using WatchtowerApi.Domain;
 
 // FE -> JSON -> DTO -> Models -> Repository -> Model -> DTO -> JSON
 
 namespace WatchtowerApi.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("reports")]
     public class CommentsController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly ICommentRepository _commentRepository;
+        private readonly IUserRepository _userRepository;
 
-        public CommentsController(AppDbContext context)
+        public CommentsController(ICommentRepository commentRepository, IUserRepository userRepository)
         {
-            _context = context;
+            _commentRepository = commentRepository;
+            _userRepository = userRepository;
         }
 
-        // GET: api/Comments
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Comment>>> GetComments()
+        // GET: reports/{userId}/comments
+        [HttpGet("{id}/comments")]
+        public async Task<ActionResult<IEnumerable<CommentDto>>> GetByReportIdAsync(long id)
         {
-            return await _context.Comments.ToListAsync();
-        }
 
-        // GET: api/Comments/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Comment>> GetComment(long id)
-        {
-            var comment = await _context.Comments.FindAsync(id);
-
-            if (comment == null)
+            var comments = await _commentRepository.GetByReportIdAsync((int)id);
+            if (!comments.Any())
             {
-                return NotFound();
+                return Problem("Report not found", statusCode: 404);
             }
 
-            return comment;
-        }
-
-        // PUT: api/Comments/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutComment(long id, Comment comment)
-        {
-            if (id != comment.Id)
+            var result = new List<CommentDto>();
+            foreach (var c in comments)
             {
-                return BadRequest();
-            }
+                var user = await _userRepository.GetByIdAsync((int)c.UserId);
 
-            _context.Entry(comment).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CommentExists(id))
+                result.Add(new CommentDto
                 {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                    Id = c.Id,
+                    UserId = c.UserId,
+                    Username = user.Username,
+                    CommentText = c.CommentText,
+                    CreatedAt = c.CreatedAt,
+                    Upvotes = c.Upvotes,
+                    UpvotedByMe = false
+                });
             }
 
-            return NoContent();
-        }
-
-        // POST: api/Comments
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Comment>> PostComment(Comment comment)
-        {
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetComment", new { id = comment.Id }, comment);
-        }
-
-        // DELETE: api/Comments/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteComment(long id)
-        {
-            var comment = await _context.Comments.FindAsync(id);
-            if (comment == null)
-            {
-                return NotFound();
-            }
-
-            _context.Comments.Remove(comment);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool CommentExists(long id)
-        {
-            return _context.Comments.Any(e => e.Id == id);
+            return Ok(result);
         }
     }
 }
