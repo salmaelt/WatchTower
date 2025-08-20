@@ -92,14 +92,17 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
 ### GET `/reports` (GeoJSON)
 - Return markers in GeoJSON within a bounding box, with optional filters.
 - **Auth:** Not required (If unauthenticated, `upvotedByMe` is defaulted to false, if authenticated it reflects the logged-in user)
-- **Content-Type:** `application/geo+json`
-- **Query params:**
-  - `bbox=minLng,minLat,maxLng,maxLat` (required)
-  - `type=...` (repeatable)
-  - `from=YYYY-MM-DD` (inclusive, occurredAt)
-  - `to=YYYY-MM-DD` (inclusive, occurredAt)
+- **Request**:
+  - Backend DTO: `ReportListQuery`
+  - **Query params:**
+    - `bbox=minLng,minLat,maxLng,maxLat` (required)
+    - `type=...` (repeatable)
+    - `from=YYYY-MM-DD` (inclusive, occurredAt)
+    - `to=YYYY-MM-DD` (inclusive, occurredAt)
 - **Response 200:**
-  - Body:
+  - **Content-Type:** `application/geo+json`
+  - Backend DTO: `GeoJsonFeatureCollection<TProps>` (see backend docs)
+  - JSON Body:
     ```json
     {
       "type": "FeatureCollection",
@@ -134,9 +137,11 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
 ### GET `/reports/{id}` (GeoJSON)
 - Get full details for a specific report.
 - **Auth:** Not required (If unauthenticated, `upvotedByMe` is defaulted to false, if authenticated it reflects the logged-in user)
-- **Content-Type:** `application/geo+json`
+- **Request**: (No body)
 - **Response 200:**
-  - Body:
+  - **Content-Type:** `application/geo+json`
+  - Backend DTO: `GeoJsonFeature<TProps>`
+  - JSON Body:
     ```json
     {
         "type": "Feature",
@@ -166,7 +171,8 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
 - Create a new report, created at time is handled by backend, just pass in when the theft happened.
 - **Auth:** Required (Authorization: Bearer `<token>`), this is used to infer the user.
 - **Request:**
-  - Body:
+  - Backend DTO: `CreateReportRequest`
+  - JSON Body:
     ```json
     {
       "type": "phone_theft",
@@ -177,7 +183,8 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
     }
     ```
 - **Response 201**:
-  - Body:
+  - Backend DTO: `CreateReportResponse`
+  - JSON Body:
     ```json
     {
       "id": 123,
@@ -197,14 +204,16 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
 - Update the description to add new information.
 - **Auth**: Required (owner or admin)
 - **Request**:
-    - Body:
+  - Backend DTO: `UpdateReportRequest`
+    - JSON Body:
     ```json
     {
       "description": "Updated description to add more detail."
     }
     ```
 - **Response 200**:
-    - Body:
+    - Backend DTO: `UpdateReportResponse`
+    - JSON Body:
     ```json
     {
       "id": 123,
@@ -223,7 +232,8 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
 - **Auth:** Required
 - **Request:** (no body)
 - **Response 200:**
-  - Body:
+  - Backend DTO: `ReportUpvoteStateDto`
+  - JSON Body:
     ```json
     {
       "id": 123,
@@ -244,7 +254,8 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
 - **Auth:** Required
 - **Request:** (no body)
 - **Response 200:**
-  - Body:
+  - Backend DTO: `ReportUpvoteStateDto`
+  - JSON Body:
     ```json
     {
       "id": 123,
@@ -279,7 +290,8 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
 - **Auth:** Not required. If unauthenticated, upvotedByMe is always false; if authenticated, it reflects the caller.
 - **Request**: (no body)
 - **Response 200:**
-  - Body:
+  - Backend DTO: `List<CommentDto>`
+  - JSON Body:
   ```json
   [
     {
@@ -305,14 +317,16 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
 - Add a comment to a report.
 - **Auth:** Required
 - **Request:**
-  - Body:
+  - Backend DTO: `CreateCommentRequest`
+  - JSON Body:
   ```json
   {
     "commentText": "Camera at the shop might have footage."
   }
   ```
 - **Response 201:**
-  - Body:
+  - Backend DTO: `CommentDto`
+  - JSON Body:
   ```json
   {
     "id": 556,
@@ -336,7 +350,8 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
 - **Auth:** Required
 - **Request:** (no body)
 - **Response 200:**
-  - Body: 
+  - Backend DTO: `CommentUpvoteStateDto`
+  - JSON Body: 
   ```json
   { 
     "id": 556,
@@ -358,7 +373,8 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
 - **Auth:** Required
 - **Request:** (no body)
 - **Response 200:**
-  - Body:
+  - Backend DTO: `CommentUpvoteStateDto`
+  - JSON Body:
   ```json
   {
     "id": 556,
@@ -387,7 +403,8 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
 
 ### ProblemDetails (example)
 - Content-Type: `application/problem+json`
-- Body:
+- Backend DTO: `Microsoft.AspNetCore.Mvc.ProblemDetails` (Provided)
+- JSON Body:
   ```json
   {
     "type": "https://httpstatuses.com/400",
