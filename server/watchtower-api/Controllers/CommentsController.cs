@@ -58,5 +58,46 @@ namespace WatchtowerApi.Controllers
 
             return Ok(result);
         }
-    }
-}
+
+        // POST /reports/{id}/comments
+        [HttpPost("{id}/comments")]
+        public async Task<ActionResult<CommentDto>> CreateCommentAsync(
+            long id,
+            [FromBody] CreateCommentRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.CommentText))
+            {
+                return Problem("Comment text is required", statusCode: 400);
+            }
+
+            // how are we gettin gthe userid - jwtclaims?
+            // var userId = ;
+
+            // include userId in the param
+            
+            /*
+
+
+
+            var comment = await _commentRepository.CreateAsync((id, userId, request.CommentText);
+
+            var user = await _userRepository.GetByIdAsync(comment.UserId);
+
+            var dto = new CommentDto
+            {
+                Id = comment.Id,
+                UserId = comment.UserId,
+                Username = user?.Username ?? "Unknown",
+                CommentText = comment.CommentText,
+                CreatedAt = comment.CreatedAt,
+            };
+
+
+
+            
+            */
+            return Ok();
+
+            
+        }
+    } }

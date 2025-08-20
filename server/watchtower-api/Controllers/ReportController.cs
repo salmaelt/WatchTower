@@ -1,165 +1,85 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+using WatchtowerApi.Contracts;
 using WatchtowerApi.Domain;
-using WatchtowerApi.Infrastructure;
+using WatchtowerApi.Infrastructure.Repositories;
 
 namespace WatchtowerApi.Controllers
 {
-    public class ReportController : Controller
+    [ApiController]
+    [Route("reports")]
+    public class ReportsController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IReportRepository _reportRepository;
+        private readonly ICommentRepository _commentRepository;
 
-        public ReportController(AppDbContext context)
+        public ReportsController(IReportRepository reportRepository, ICommentRepository commentRepository)
         {
-            _context = context;
+            _reportRepository = reportRepository;
+            _commentRepository = commentRepository;
         }
 
-        // GET: Report
-        public async Task<IActionResult> Index()
+        // GET /reports/{id}
+        [HttpGet("{id}")]
+        public async Task<ActionResult> GetReport(long id)
         {
-            var appDbContext = _context.Reports.Include(r => r.User);
-            return Ok(await appDbContext.ToListAsync());
+            var report = await _reportRepository.GetByIdAsync((int)id);
+
+            return Ok(new
+            {
+                id = report.Id,
+                type = report.Type,
+                occurredAt = report.OccurredAt,
+                lat = report.Location.Y,
+                lng = report.Location.X,
+                status = report.Status,
+                upvotes = report.Upvotes,
+                description = report.Description,
+                userId = report.UserId,
+                username = report.User?.Username,
+                createdAt = report.CreatedAt
+            });
         }
 
-        // GET: Report/Details/5
-        public async Task<IActionResult> Details(long? id)
+
+        // PATCH /reports/{id}/upvote
+        [HttpPatch("{id}/upvote")]
+        public async Task<ActionResult> UpvoteReport(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var report = await _reportRepository.GetByIdAsync(id);
+            if (report == null) return NotFound();
 
-            var report = await _context.Reports
-                .Include(r => r.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (report == null)
-            {
-                return NotFound();
-            }
+            // Increment upvotes
+            report.Upvotes += 1;
+            await _reportRepository.UpdateUpvotesAsync(id, report.Upvotes);
+            var response = new { id = report.Id, upvotes = report.Upvotes };
 
-            return Ok(report);
+            return Ok(response);
         }
 
-        // GET: Report/Create
-        public IActionResult Create()
-        {
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email");
-            return Ok();
-        }
+        // [HttpPost("{id}/comments")]
+        // public async Task<ActionResult> AddComment(int id, [FromBody] CreateCommentRequest request)
+        // {
+        //     var report = await _reportRepository.GetByIdAsync(id);
+        //     if (report == null) return NotFound();
 
-        // POST: Report/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,UserId,Type,Description,OccurredAt,Location,Status,CreatedAt,Upvotes")] Report report)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(report);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", report.UserId);
-            return Ok(report);
-        }
+        //     int userId = int.Parse(User.FindFirst("id")!.Value); // match DB
 
-        // GET: Report/Edit/5
-        public async Task<IActionResult> Edit(long? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+        //     var comment = await _commentRepository.CreateAsync(report.Id, userId, request.CommentText);
 
-            var report = await _context.Reports.FindAsync(id);
-            if (report == null)
-            {
-                return NotFound();
-            }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", report.UserId);
-            return Ok(report);
-        }
+        //     var dto = new
+        //     {
+        //         id = comment.Id,
+        //         userId = comment.UserId,
+        //         username = comment.User!.Username,
+        //         commentText = comment.CommentText,
+        //         createdAt = comment.CreatedAt
+        //     };
 
-        // POST: Report/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(long id, [Bind("Id,UserId,Type,Description,OccurredAt,Location,Status,CreatedAt,Upvotes")] Report report)
-        {
-            if (id != report.Id)
-            {
-                return NotFound();
-            }
+        //     return Ok(dto);
+        // }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(report);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ReportExists(report.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", report.UserId);
-            return Ok(report);
-        }
 
-        // GET: Report/Delete/5
-        public async Task<IActionResult> Delete(long? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var report = await _context.Reports
-                .Include(r => r.User)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (report == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(report);
-        }
-
-        // POST: Report/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(long id)
-        {
-            var report = await _context.Reports.FindAsync(id);
-            if (report != null)
-            {
-                _context.Reports.Remove(report);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool ReportExists(long id)
-        {
-            return _context.Reports.Any(e => e.Id == id);
-        }
 
     }
 }
