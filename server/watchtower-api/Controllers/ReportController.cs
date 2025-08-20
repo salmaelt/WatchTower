@@ -160,5 +160,6 @@ namespace WatchtowerApi.Controllers
         {
             return _context.Reports.Any(e => e.Id == id);
         }
+
     }
 }
