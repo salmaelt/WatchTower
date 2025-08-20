@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 
 namespace WatchtowerApi.Contracts
 {
-
     // Incoming for register endpoint
     public sealed class RegisterRequest
     {
@@ -26,7 +25,6 @@ namespace WatchtowerApi.Contracts
     {
         [Required]
         [JsonPropertyName("usernameOrEmail")] public string UsernameOrEmail { get; set; } = default!;
-
 
         [Required]
         [JsonPropertyName("password")] public string Password { get; set; } = default!;

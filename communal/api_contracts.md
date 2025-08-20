@@ -19,7 +19,8 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
 - **Auth:** Not required
 - **Request:**
   - Content-Type: `application/json`
-  - Body:
+  - Backend DTO: `RegisterRequest`
+  - JSON Body:
     ```json
     {
       "username": "alice",
@@ -29,7 +30,8 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
     ```
 - **Response 201:**
   - Content-Type: `application/json`
-  - Body:
+  - Backend DTO: `AuthResponse`
+  - JSON Body:
     ```json
     {
       "id": 42,
@@ -48,6 +50,8 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
 - Exchange credentials for a short-lived access token. 
 - **Auth:** Not required
 - **Request:**
+  - Backend DTO: `LoginRequest`
+  - JSON Body:
   ```json
   {
     "usernameOrEmail": "alice@example.com",
@@ -55,7 +59,8 @@ This document defines the HTTP contracts (URLs, methods, auth, request/response 
   }
   ```
 - **Response 200:**
-  - Body:
+  - Backend DTO: `AuthResponse`
+  - JSON Body:
     ```json
     {
       "token": "eyJhbGciOiJIUzI1NiIs...",
