@@ -1,12 +1,18 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 .App { text-align: center; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
 
+:root{
+  --green:#2f6b57;
+  --green-d:#285a49;
+  --pill:#264f42;
+  --text:#eaf5ef;
+}
 
 .phonescreen {
   width: 393px;
   height: 852px;
   margin: 24px auto;
-  border: 10px solid #111;      
+  border: 8px solid #111;      
   border-radius: 36px;         
   box-shadow: 0 10px 40px rgba(0,0,0,.3);
   overflow: hidden;             
@@ -28,7 +34,7 @@ h2 {
   left: 12px;
   right: 12px;
   height: 420px;
-  border: 5px solid green;             
+  border: 5px solid var(--green-d);             
   border-radius: 16px;
   overflow: hidden;          
   background: #0b0b0b;
@@ -47,10 +53,6 @@ body, html, #root { height: 100%; }
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-}
-
-#root {
-  height: 100vh;
 }
 
 .App-header {
@@ -104,3 +106,105 @@ body, html, #root { height: 100%; }
 }
 
 .map--tall { height: 60vh; width: 100%; max-width: 1000px; }
+
+.actions{
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 100px; 
+  display: flex;
+  justify-content: flex-end; 
+  z-index: 1050;
+}
+
+.report-btn{
+  padding: 12px 16px;
+  border: none;
+  border-radius: 14px;
+  background: #2f6b57;
+  color: #fff;
+  font-weight: 800;
+  font-size: 16px;
+  display: inline-flex;       /* shrink to content */
+  align-items: center;
+  gap: 10px;                  /* space between text and arrow */
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,.2);
+  transition: background .15s ease, transform .05s ease;
+}
+
+.report-btn:hover{ background: #285a49; }
+.report-btn:active{ transform: translateY(1px); }
+
+/* Arrow icon styling + subtle motion */
+.report-btn .arrow{
+  width: 18px;
+  height: 18px;
+  display: block;
+  transform: translateX(0);
+  transition: transform .2s ease;
+  opacity: .95;
+}
+.report-btn:hover .arrow{
+  transform: translateX(3px); /* nudge on hover */
+}
+
+.bottom-nav{
+  position:absolute;
+  left:16px; right:16px; bottom:16px;
+  background: var(--green);
+  border-radius: 20px;
+  padding: 8px;
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  z-index: 1100;
+}
+
+/* items */
+.nav-item{
+  flex:1;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:4px;
+  color: var(--text);
+  text-decoration:none;
+  font-size: 12px;
+  font-weight: 700;
+  padding:8px 0;
+  border-radius: 14px;
+  opacity:.9;
+  transition: background .15s ease;
+}
+.nav-item svg{
+  display:block;
+  transition: transform .2s ease;          /* 👈 enables nudge */
+}
+.nav-item span{
+  transition: transform .2s ease, opacity .2s ease;  /* 👈 label follows */
+}
+
+/* hover / focus nudge */
+.nav-item:hover svg,
+.nav-item:focus-visible svg{ transform: translateX(3px); }
+.nav-item:hover span,
+.nav-item:focus-visible span{ transform: translateX(2px); }
+
+/* pressed state */
+.nav-item:active{ transform: translateY(1px); }
+
+/* active (current page) */
+.nav-item.active{
+  background: rgba(255,255,255,0.14);
+  opacity:1;
+}
+/* keep the nudge on active too */
+.nav-item.active svg,
+.nav-item.active span{ transform: translateX(2px); }
+
+/* button version for account */
+.as-button{ background:none; border:none; cursor:pointer; }
+.as-button:focus-visible{ outline:2px solid rgba(255,255,255,.4); outline-offset:2px; }
+
+/* respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .nav-item svg, .nav-item span{ transition: none; }
+}
