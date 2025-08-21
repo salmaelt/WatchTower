@@ -16,4 +16,6 @@ public interface IReportRepository
     Task<Report> UpdateUpvotesAsync(int id, int upvotes);
     Task<int> GetTotalCountAsync(string? type = null, string? status = null);
     Task<int> GetCountByUserAsync(int userId);
+    Task UpvoteAsync(long reportId, int userId);
+    Task RemoveUpvoteAsync(long reportId, int userId);
 }

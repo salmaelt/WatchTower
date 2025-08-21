@@ -12,4 +12,7 @@ public interface ICommentRepository
     Task DeleteAsync(int id);
     Task<int> GetCountByReportAsync(int reportId);
     Task<int> GetCountByUserAsync(int userId);
+    Task UpvoteAsync(long commentId, int userId);
+    Task RemoveUpvoteAsync(long commentId, int userId);
+    
 }

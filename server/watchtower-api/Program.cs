@@ -11,6 +11,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Security.Claims;
+using WatchtowerApi.Infrastructure.Repositories;
+using IUserAuthService = WatchtowerApi.Infrastructure.Auth.IUserAuthService;
+
 
 // Builder instance for making the web app
 var builder = WebApplication.CreateBuilder(args);
@@ -94,6 +97,11 @@ builder.Services.AddCors(o =>
          .AllowAnyHeader()
          .AllowAnyMethod());
 });
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+
 
 // Construct Web App from above builder instance
 var app = builder.Build();

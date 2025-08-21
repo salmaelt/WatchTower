@@ -1,4 +1,4 @@
-// Controllers/ReportsController.cs
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NetTopologySuite.Geometries;
@@ -13,34 +13,82 @@ namespace WatchtowerApi.Controllers
     [Route("reports")]
     public class ReportsController : ControllerBase
     {
-        private readonly IReportRepository _repo;
+        private readonly IReportRepository _reportRepository;
 
-        public ReportsController(IReportRepository repo)
+        public ReportsController(IReportRepository reportRepository)
         {
-            _repo = repo;
+            _reportRepository = reportRepository;
         }
 
         // GET /reports?bbox=...&type=...&from=...&to=...
         [HttpGet]
-        [ProducesResponseType(typeof(GeoJsonFeatureCollection<ReportPropertiesDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetReports(
-            [FromQuery] string bbox,
-            [FromQuery] List<string>? type,
-            [FromQuery] DateTimeOffset? from,
-            [FromQuery] DateTimeOffset? to,
-            CancellationToken ct)
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(GeoJsonFeatureCollection<ReportPropertiesDto>), 200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> GetReports([FromQuery] ReportListQuery query)
         {
-            throw new NotImplementedException();
+            // bbox is required according to spec
+            if (string.IsNullOrWhiteSpace(query.Bbox))
+                return BadRequest("bbox parameter is required.");
+
+            if (!TryParseBbox(query.Bbox, out var env))
+                return BadRequest("Invalid bbox format. Expected minLng,minLat,maxLng,maxLat.");
+
+            var reports = await _reportRepository.GetReportsInBoundedBoxAsync(
+                env.MinY, env.MinX, env.MaxY, env.MaxX);
+
+            if (query.Type != null && query.Type.Any())
+                reports = reports.Where(r => query.Type.Contains(r.Type));
+
+            if (query.From.HasValue)
+                reports = reports.Where(r => r.OccurredAt >= query.From.Value);
+
+            if (query.To.HasValue)
+                reports = reports.Where(r => r.OccurredAt <= query.To.Value);
+
+            // Get current user ID using JWT claims
+            var currentUserId = GetUserId();
+
+            var featureCollection = new GeoJsonFeatureCollection<ReportPropertiesDto>();
+            foreach (var r in reports)
+            {
+                // Implement proper upvotedByMe logic
+                bool upvotedByMe = currentUserId.HasValue && r.UpvoteUsers != null && 
+                                   r.UpvoteUsers.Any(u => u.UserId == currentUserId.Value);
+                
+                featureCollection.Features.Add(new GeoJsonFeature<ReportPropertiesDto>
+                {
+                    Geometry = new GeoJsonPoint { Coordinates = new[] { r.Location.X, r.Location.Y } },
+                    Properties = ToPropsDto(r, upvotedByMe)
+                });
+            }
+
+            return Ok(featureCollection);
         }
 
         // GET /reports/{id}
         [HttpGet("{id:long}")]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(GeoJsonFeature<ReportPropertiesDto>), 200)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> GetReport(long id, CancellationToken ct)
+        public async Task<IActionResult> GetReport(long id)
         {
-            throw new NotImplementedException();
+            var report = await _reportRepository.GetByIdAsync((int)id);
+            if (report == null)
+                return NotFound();
+
+            // Implement proper upvotedByMe logic
+            var currentUserId = GetUserId();
+            bool upvotedByMe = currentUserId.HasValue && report.UpvoteUsers != null && 
+                               report.UpvoteUsers.Any(u => u.UserId == currentUserId.Value);
+
+            var feature = new GeoJsonFeature<ReportPropertiesDto>
+            {
+                Geometry = new GeoJsonPoint { Coordinates = new[] { report.Location.X, report.Location.Y } },
+                Properties = ToPropsDto(report, upvotedByMe)
+            };
+
+            return Ok(feature);
         }
 
         // POST /reports
@@ -49,9 +97,29 @@ namespace WatchtowerApi.Controllers
         [ProducesResponseType(typeof(CreateReportResponse), 201)]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> CreateReport([FromBody] CreateReportRequest body, CancellationToken ct)
+        public async Task<IActionResult> CreateReport([FromBody] CreateReportRequest request)
         {
-            throw new NotImplementedException();
+            var currentUserId = GetUserId();
+            if (currentUserId == null)
+                return Unauthorized();
+
+            var report = await _reportRepository.CreateAsync(
+                (int)currentUserId.Value,
+                request.Type,
+                request.Description,
+                request.Lat,
+                request.Lng,
+                request.OccurredAt.DateTime);
+
+            var response = new CreateReportResponse
+            {
+                Id = report.Id,
+                Status = report.Status,
+                CreatedAt = report.CreatedAt,
+                UpdatedAt = report.UpdatedAt
+            };
+
+            return CreatedAtAction(nameof(GetReport), new { id = report.Id }, response);
         }
 
         // PATCH /reports/{id}
@@ -62,37 +130,129 @@ namespace WatchtowerApi.Controllers
         [ProducesResponseType(401)]
         [ProducesResponseType(403)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> UpdateReport(long id, [FromBody] UpdateReportRequest body, CancellationToken ct)
+        public async Task<IActionResult> UpdateReport(long id, [FromBody] UpdateReportRequest body)
         {
-            throw new NotImplementedException();
+            var currentUserId = GetUserId();
+            if (currentUserId == null) return Unauthorized();
+
+            var report = await _reportRepository.GetByIdAsync((int)id);
+            if (report == null) return NotFound();
+
+            if (report.UserId != currentUserId.Value && !User.IsInRole("admin"))
+                return Forbid();
+
+            await _reportRepository.UpdateAsync((int)id, report.Type, body.Description, report.Status);
+
+            report = await _reportRepository.GetByIdAsync((int)id);
+
+            return Ok(new UpdateReportResponse
+            {
+                Id = report.Id,
+                UpdatedAt = report.UpdatedAt ?? report.CreatedAt
+            });
         }
 
-        // PATCH /reports/{id}/upvote
+        // PUT /reports/{id}/upvote
         [Authorize]
-        [HttpPatch("{id:long}/upvote")]
+        [HttpPut("{id:long}/upvote")]
+        [ProducesResponseType(typeof(ReportUpvoteStateDto), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> UpvoteReport(long id)
+        {
+            var currentUserId = GetUserId();
+            if (currentUserId == null) return Unauthorized();
+
+            var report = await _reportRepository.GetByIdAsync((int)id);
+            if (report == null) return NotFound();
+
+            if (report.UserId == currentUserId.Value)
+                return BadRequest("Cannot upvote your own report.");
+
+            // Use proper upvote system like in CommentsController
+            // Check if user already upvoted (idempotent)
+            if (report.UpvoteUsers != null && !report.UpvoteUsers.Any(u => u.UserId == currentUserId.Value))
+            {
+                await _reportRepository.UpvoteAsync(id, (int)currentUserId.Value);
+            }
+
+            // Refresh report data
+            report = await _reportRepository.GetByIdAsync((int)id);
+
+            return Ok(new ReportUpvoteStateDto
+            {
+                Id = report.Id,
+                Upvotes = report.UpvoteUsers?.Count ?? 0,
+                UpvotedByMe = report.UpvoteUsers?.Any(u => u.UserId == currentUserId.Value) ?? false
+            });
+        }
+
+        // DELETE /reports/{id}/upvote
+        [Authorize]
+        [HttpDelete("{id:long}/upvote")]
         [ProducesResponseType(typeof(ReportUpvoteStateDto), 200)]
         [ProducesResponseType(401)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> ToggleUpvote(long id, CancellationToken ct)
+        public async Task<IActionResult> RemoveUpvote(long id)
         {
-            throw new NotImplementedException();
+            var currentUserId = GetUserId();
+            if (currentUserId == null) return Unauthorized();
+
+            var report = await _reportRepository.GetByIdAsync((int)id);
+            if (report == null) return NotFound();
+
+            // Use proper upvote removal system
+            await _reportRepository.RemoveUpvoteAsync(id, (int)currentUserId.Value);
+
+            // Refresh report data
+            report = await _reportRepository.GetByIdAsync((int)id);
+
+            return Ok(new ReportUpvoteStateDto
+            {
+                Id = report.Id,
+                Upvotes = report.UpvoteUsers?.Count ?? 0,
+                UpvotedByMe = false // Always false after removal
+            });
         }
 
-        // Helpers
-        private static ReportPropertiesDto ToPropsDto(Report r, bool upvotedByMe) =>
-            new()
-            {
-                Id = r.Id,
-                Type = r.Type,
-                OccurredAt = r.OccurredAt,
-                CreatedAt = r.CreatedAt,
-                UpdatedAt = r.UpdatedAt,
-                Status = r.Status,
-                Upvotes = r.Upvotes,
-                UpvotedByMe = upvotedByMe,
-                Description = r.Description,
-                User = new ReportUserDto { Id = r.UserId, Username = r.User?.Username ?? "unknown" }
-            };
+        // DELETE /reports/{id}
+        [Authorize]
+        [HttpDelete("{id:long}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> DeleteReport(long id)
+        {
+            var currentUserId = GetUserId();
+            if (currentUserId == null) return Unauthorized();
+
+            var report = await _reportRepository.GetByIdAsync((int)id);
+            if (report == null) return NotFound();
+
+            if (report.UserId != currentUserId.Value && !User.IsInRole("admin"))
+                return Forbid();
+
+            await _reportRepository.DeleteAsync((int)id);
+
+            return NoContent();
+        }
+
+        // Helper Methods
+        private static ReportPropertiesDto ToPropsDto(Report r, bool upvotedByMe) => new()
+        {
+            Id = r.Id,
+            Type = r.Type,
+            OccurredAt = r.OccurredAt,
+            CreatedAt = r.CreatedAt,
+            UpdatedAt = r.UpdatedAt,
+            Status = r.Status,
+            Upvotes = r.UpvoteUsers?.Count ?? 0, // Use actual upvote count from relationship
+            UpvotedByMe = upvotedByMe,
+            Description = r.Description,
+            User = new ReportUserDto { Id = r.UserId, Username = r.User?.Username ?? "unknown" }
+        };
 
         private static bool TryParseBbox(string raw, out Envelope env)
         {
@@ -108,10 +268,11 @@ namespace WatchtowerApi.Controllers
             return true;
         }
 
+        // Use consistent JWT claim lookup like in CommentsController
         private long? GetUserId()
         {
-            var idClaim = User?.Claims?.FirstOrDefault(c => c.Type == "sub" || c.Type == "userId");
-            return long.TryParse(idClaim?.Value, out var id) ? id : null;
+            var userIdClaim = User.FindFirstValue("sub");
+            return !string.IsNullOrEmpty(userIdClaim) && long.TryParse(userIdClaim, out var id) ? id : null;
         }
     }
 }
