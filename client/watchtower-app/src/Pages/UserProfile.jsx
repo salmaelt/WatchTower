@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './UserProfile.css';
-import BottomNavBar from '../Components/BottomNavBar/BottomNavBar';
+import BottomNavBar from '../components/BottomNavBar/BottomNavBar';
 import { useNavigate } from 'react-router-dom';
 
 function FourthPage() {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './LoginPage.css';
-import logo from '../assets/Images/watchtowerlogo.png';
+//import logo from '../assets/Images/watchtowerlogo.png';
 import { useNavigate } from 'react-router-dom';
 
 function Login() {
@@ -73,7 +73,7 @@ function Login() {
               <p>" Saving London one Phone at a Time "</p>
             </div>
             <div>
-              <img src={logo} alt="WatchTower Logo" id='watchtower-logo' />
+              
             </div>
           </div>
         </form>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './Signup.css';
-import logo from '../assets/Images/watchtowerlogo.png';
+//import logo from '../assets/Images/watchtowerlogo.png';
 
 function Signup() {
   const [formData, setFormData] = useState({
@@ -116,8 +116,6 @@ function Signup() {
                         <p>" Saving London one Phone at a Time "</p>
                         </div>
                         <div>
-
-                            <img src={logo} alt="WatchTower Logo" id='watchtower-logo' />
                         </div>
                     </div>
                 </form>

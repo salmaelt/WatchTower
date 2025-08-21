@@ -1,22 +1,24 @@
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import Location from "./leaflet/Location";
-import './App.css'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import Homepage from './Pages/Homepage';
-import Signup from './Pages/Signup';
-import FourthPage from './Pages/UserProfile';
-import FifthPage from "./Pages/FifthPage"
-import Login from './Pages/LoginPage';
+import Homepage from "./Pages/HomePage";
+import Signup from "./Pages/Signup";
+import UserProfile from "./Pages/UserProfile";     
+import Login from "./Pages/LoginPage";
+import Dashboard from "./leaflet/Location"
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Location />} />
-        <Route path="/live" element={<Placeholder title="Live Reports" />} />
-        <Route path="/report" element={<Placeholder title="Report" />} />
-        <Route path="/signin" element={<Placeholder title="Sign in" />} />
-        <Route path="/dashboard" element={<Placeholder title="Dashboard" />} />
+        <Route path="./Pages/Homepage" element={<Homepage />} />
+        <Route path="/Pages/Signup" element={<Login />} />
+        <Route path="./Pages/Signup" element={<Signup />} />
+        <Route path="./Pages/UserProfile" element={<UserProfile />} />
+        <Route path="./leaflet/Location" element={<Dashboard />} />
+
+
+        {/* 404 fallback (optional) */}
+        <Route path="*" element={<div style={{ padding: 24 }}>Page not found</div>} />
       </Routes>
     </BrowserRouter>
   );

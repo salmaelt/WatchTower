@@ -1,6 +1,7 @@
 import "leaflet/dist/leaflet.css";
 import "../App.css";
 import "./Location.css"
+import "../Pages/Signup"
 
 import {
     MapContainer,
@@ -12,12 +13,13 @@ import {
 } from "react-leaflet";
 
 import L from "leaflet";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, Route } from "react";
 import useGeoLocation from "../hooks/GeoLocation";
 import markerPng from "../img/marker.png";   
 
 import { useNavigate } from "react-router-dom";
 import BottomNavBar from "../components/BottomNavBar/BottomNavBar";
+import Signup from "../Pages/Signup";
 
 
 const custIcon = L.icon({
@@ -146,6 +148,7 @@ export default function Location() {
     <div className="actions">
         <button className="report-btn" onClick={handleReportNow}>
             Report Live Now <span className="arrow">--&gt;</span>
+            <Route path="../Pages/Signup" element={<Signup />} />
         </button>
     </div>
 
