@@ -1,23 +1,43 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import Homepage from "./Pages/HomePage";
-import Signup from "./Pages/Signup";
-import UserProfile from "./Pages/UserProfile";     
+import Location from "./leaflet/Location";
+import LiveReports from "./Pages/LiveReports";
+import AccountGate from "./Pages/AccountGate";
 import Login from "./Pages/LoginPage";
-import Dashboard from "./leaflet/Location"
+import Signup from "./Pages/Signup";
+import UserDashboard from "./Pages/UserProfile"; // exports default already
+
+export const isSignedIn = () => !!localStorage.getItem("token");
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="./Pages/Homepage" element={<Homepage />} />
-        <Route path="/Pages/Signup" element={<Login />} />
-        <Route path="./Pages/Signup" element={<Signup />} />
-        <Route path="./Pages/UserProfile" element={<UserProfile />} />
-        <Route path="./leaflet/Location" element={<Dashboard />} />
+        {/* Home is the map page */}
+        <Route path="/" element={<Location />} />
 
+        {/* Live reports placeholder */}
+        <Route path="/live" element={<LiveReports />} />
 
-        {/* 404 fallback (optional) */}
+        <Route
+          path="/account"
+          element={isSignedIn() ? <UserDashboard /> : <AccountGate />}
+        />
+
+        {/* Auth routes */}
+        <Route path="/signin" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+
+        {/* Direct dashboard path if you navigate there explicitly */}
+        <Route
+          path="/dashboard"
+          element={isSignedIn() ? <UserDashboard /> : <Navigate to="/account" replace />}
+        />
+
+        {/* Report page placeholder for your “Report Now” CTA */}
+        <Route path="/report" element={<LiveReports title="Report (coming soon)" />} />
+
+        {/* 404 */}
         <Route path="*" element={<div style={{ padding: 24 }}>Page not found</div>} />
       </Routes>
     </BrowserRouter>
