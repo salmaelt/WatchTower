@@ -13,5 +13,4 @@ public interface IUserRepository
     Task DeleteAsync(int id);
     Task<bool> EmailExistsAsync(string email);
     Task<bool> UsernameExistsAsync(string username);
-    Task<IEnumerable<User>> GetAllAsync();
 }
