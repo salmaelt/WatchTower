@@ -1,0 +1,47 @@
+:root{
+  --green:#2f6b57;
+  --ink:#0f172a;
+  --muted:#6b7280;
+  --card:#ffffff;
+}
+
+
+.dash-wrap{
+  padding: 90px 16px 90px; 
+}
+
+.dash-header h2{
+  font-size: 22px; font-weight: 900; color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.dash-grid{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.dash-card{
+  background: var(--card);
+  border: 2px solid #1f2937;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.12);
+  padding: 14px;
+}
+.dash-card h3{
+  font-size: 16px; margin-bottom: 8px; color: var(--ink);
+}
+
+.dash-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 8px 0; border-top: 1px solid #e5e7eb; margin-top: 8px;
+}
+
+.dash-actions{
+  display:flex; gap:10px; margin-top: 10px; flex-wrap: wrap;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .btn-arrow{ transition: none; }
+}

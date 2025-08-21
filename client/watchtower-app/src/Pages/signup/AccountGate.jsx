@@ -1,9 +1,11 @@
 import { useNavigate, Link } from "react-router-dom";
-import BottomNavBar from "../components/BottomNavBar/BottomNavBar";
+import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
+
+//here we need to add out actual authentication from the backend so it can do login/signup decisions
 
 export default function AccountGate() {
   const navigate = useNavigate();
-  const isSignedIn = !!localStorage.getItem("token"); // should be false here
+  const isSignedIn = !!localStorage.getItem("token"); 
 
   return (
     <div className="phonescreen" style={{ position:"relative", background:"#fff" }}>
