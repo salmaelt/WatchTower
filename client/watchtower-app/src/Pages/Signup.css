@@ -1,0 +1,115 @@
+.login-form{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-header h1{
+    color: white;
+    font-size: 60px;
+}
+
+.signup-container {
+  background: darkolivegreen;
+  width: 430px;
+  min-height: 932px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+.signup-form {
+  background: rgba(0,0,0,0.7);
+  padding: 2rem;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 350px;
+  box-sizing: border-box;
+}
+.signup-input {
+  background: transparent;
+  color: white;
+  border: 1px solid #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  width: 90%;
+}
+.signup-input::placeholder {
+  color: white;
+}
+.signup-button {
+  background: #fff;
+  color: black;
+  font-size: 1.5rem;
+  font-weight: bold;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+}
+
+.login-footer {
+  margin-top: 1rem;
+  text-align: center;
+  color: white;
+}
+.login-footer a {
+  margin-top: 1rem;
+  text-align: center;
+  color: white;
+  text-decoration: none;
+}
+
+.login-inspiration {
+  text-align: center;
+  color: white;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+.login-inspiration  p {
+  font-size: 20px;
+}
+
+#login{
+    background-color: white;
+    color: black;
+    font-size: 20px;
+    margin-left: 15px;
+    padding: 10px;
+    border-radius: 15%;
+}
+#watchtower-logo{
+    height: 100px;
+    width: 100px;
+}
+
+@media screen and (min-width: 800px) {
+  .signup-container {
+    width: 600px;
+    min-height: 700px;
+    padding: 3rem;
+  }
+  .signup-form {
+    max-width: 500px;
+    padding: 3rem;
+    gap: 2rem;
+  }
+  .signup-input {
+    font-size: 1.3rem;
+    padding: 1.2rem;
+  }
+  .signup-button {
+    font-size: 2rem;
+    padding: 1.5rem;
+  }
+}
