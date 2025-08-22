@@ -1,9 +1,11 @@
+// External dependencies
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+
+// Internal dependencies
 using WatchtowerApi.Contracts;
 using WatchtowerApi.Infrastructure.Repositories;
 using WatchtowerApi.Infrastructure.Auth;
-using IUserAuthService = WatchtowerApi.Infrastructure.Auth.IUserAuthService;
-using Microsoft.AspNetCore.Authorization;
 
 namespace WatchtowerApi.Controllers
 {
