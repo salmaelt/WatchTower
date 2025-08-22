@@ -16,9 +16,9 @@ public sealed class JwtUserAuthService : IUserAuthService
     public JwtUserAuthService(IConfiguration cfg)
     {
         // Prefer appsettings; fall back to dev defaults
-        _issuer = cfg["Jwt:Issuer"]    ?? "watchtower-api";
-        _audience = cfg["Jwt:Audience"]?? "watchtower-web";
-        _signingKey = cfg["Jwt:Key"]   ?? throw new InvalidOperationException("Jwt:Key missing");
+        _issuer = cfg["Jwt:Issuer"] ?? "watchtower-api";
+        _audience = cfg["Jwt:Audience"] ?? "watchtower-web";
+        _signingKey = cfg["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key missing");
     }
 
     public string HashPassword(string password) =>
