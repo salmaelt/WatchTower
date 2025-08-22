@@ -60,7 +60,7 @@ namespace WatchtowerApi.Infrastructure.Repositories
             if (comment == null) throw new KeyNotFoundException("Comment not found");
 
             comment.CommentText = commentText;
-            comment.Upvotes = comment.Upvotes; // Optional: keep current upvotes
+            comment.Upvotes = comment.Upvotes; // keep current upvotes
 
             _context.Comments.Update(comment);
             await _context.SaveChangesAsync();

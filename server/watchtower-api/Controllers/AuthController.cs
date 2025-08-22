@@ -112,7 +112,7 @@ public async Task<IActionResult> Login([FromBody] LoginRequest request)
     }
     catch (Exception ex)
     {
-        Console.WriteLine(ex); // Log for debugging
+        Console.WriteLine(ex); 
         return Problem("Login failed: " + ex.Message, statusCode: 500);
     }
 }}

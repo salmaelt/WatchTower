@@ -27,7 +27,7 @@ namespace WatchtowerApi.Controllers
         [ProducesResponseType(400)]
         public async Task<IActionResult> GetReports([FromQuery] ReportListQuery query)
         {
-            // bbox is required according to spec
+           
             if (string.IsNullOrWhiteSpace(query.Bbox))
                 return BadRequest("bbox parameter is required.");
 
@@ -41,10 +41,10 @@ namespace WatchtowerApi.Controllers
                 reports = reports.Where(r => query.Type.Contains(r.Type));
 
             if (query.From.HasValue)
-                reports = reports.Where(r => r.OccurredAt >= query.From.Value);
+                reports = reports.Where(r => r.OccurredAt >= query.From.Value.UtcDateTime);
 
             if (query.To.HasValue)
-                reports = reports.Where(r => r.OccurredAt <= query.To.Value);
+                reports = reports.Where(r => r.OccurredAt <= query.To.Value.UtcDateTime);
 
             // Get current user ID using JWT claims
             var currentUserId = GetUserId();
@@ -52,7 +52,7 @@ namespace WatchtowerApi.Controllers
             var featureCollection = new GeoJsonFeatureCollection<ReportPropertiesDto>();
             foreach (var r in reports)
             {
-                // Implement proper upvotedByMe logic
+                //
                 bool upvotedByMe = currentUserId.HasValue && r.UpvoteUsers != null && 
                                    r.UpvoteUsers.Any(u => u.UserId == currentUserId.Value);
                 
@@ -77,7 +77,6 @@ namespace WatchtowerApi.Controllers
             if (report == null)
                 return NotFound();
 
-            // Implement proper upvotedByMe logic
             var currentUserId = GetUserId();
             bool upvotedByMe = currentUserId.HasValue && report.UpvoteUsers != null && 
                                report.UpvoteUsers.Any(u => u.UserId == currentUserId.Value);
@@ -109,7 +108,7 @@ namespace WatchtowerApi.Controllers
                 request.Description,
                 request.Lat,
                 request.Lng,
-                request.OccurredAt.DateTime);
+                request.OccurredAt.UtcDateTime);
 
             var response = new CreateReportResponse
             {
@@ -170,8 +169,6 @@ namespace WatchtowerApi.Controllers
             if (report.UserId == currentUserId.Value)
                 return BadRequest("Cannot upvote your own report.");
 
-            // Use proper upvote system like in CommentsController
-            // Check if user already upvoted (idempotent)
             if (report.UpvoteUsers != null && !report.UpvoteUsers.Any(u => u.UserId == currentUserId.Value))
             {
                 await _reportRepository.UpvoteAsync(id, (int)currentUserId.Value);
@@ -202,7 +199,6 @@ namespace WatchtowerApi.Controllers
             var report = await _reportRepository.GetByIdAsync((int)id);
             if (report == null) return NotFound();
 
-            // Use proper upvote removal system
             await _reportRepository.RemoveUpvoteAsync(id, (int)currentUserId.Value);
 
             // Refresh report data
@@ -248,7 +244,7 @@ namespace WatchtowerApi.Controllers
             CreatedAt = r.CreatedAt,
             UpdatedAt = r.UpdatedAt,
             Status = r.Status,
-            Upvotes = r.UpvoteUsers?.Count ?? 0, // Use actual upvote count from relationship
+            Upvotes = r.UpvoteUsers?.Count ?? 0, 
             UpvotedByMe = upvotedByMe,
             Description = r.Description,
             User = new ReportUserDto { Id = r.UserId, Username = r.User?.Username ?? "unknown" }
@@ -268,7 +264,7 @@ namespace WatchtowerApi.Controllers
             return true;
         }
 
-        // Use consistent JWT claim lookup like in CommentsController
+
         private long? GetUserId()
         {
             var userIdClaim = User.FindFirstValue("sub");

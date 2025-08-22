@@ -102,7 +102,7 @@ namespace WatchtowerApi.Controllers
             if (comment.UserId == userId)
                 return BadRequest(new { message = "Self-upvote not allowed" });
 
-            // Idempotent: only add upvote if it doesn't exist
+            //only add upvote if it doesn't exist
             if (!comment.UpvoteUsers.Any(u => u.UserId == userId))
                 await _commentRepository.UpvoteAsync(id, (int)userId);
 
