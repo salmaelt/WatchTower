@@ -296,7 +296,7 @@ namespace WatchtowerApi.Controllers
                 {
                     Id = updated_report.Id,
                     Upvotes = updated_report.Upvotes,
-                    UpvotedByMe = true
+                    UpvotedByMe = false
                 });
             }
             catch (InvalidOperationException e)

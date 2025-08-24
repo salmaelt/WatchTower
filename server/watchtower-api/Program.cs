@@ -1,9 +1,8 @@
 //Program.cs
+
+// External Dependencies
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using WatchtowerApi.Infrastructure;
-using WatchtowerApi.Infrastructure.Auth;
-using WatchtowerApi.Domain;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +10,12 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Security.Claims;
+
+// Internal Dependencies
+using WatchtowerApi.Infrastructure;
+using WatchtowerApi.Infrastructure.Auth;
+using WatchtowerApi.Domain;
+using WatchtowerApi.Infrastructure.Repositories;
 
 // Builder instance for making the web app
 var builder = WebApplication.CreateBuilder(args);
@@ -25,20 +30,30 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "WatchTower API", Version = "v1" });
 
-    var bearer = new OpenApiSecurityScheme
+    var jwtScheme = new OpenApiSecurityScheme
     {
         Name = "Authorization",
         Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
+        Scheme = "bearer",        // must be lower-case
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Paste your JWT and click Authorize."
+        Description = "Paste your JWT (no 'Bearer ' prefix).",
+        Reference = new OpenApiReference
+        {
+            Type = ReferenceType.SecurityScheme,
+            Id = "Bearer"
+        }
     };
 
-    c.AddSecurityDefinition("Bearer", bearer);
+    c.AddSecurityDefinition("Bearer", jwtScheme);
+
+    // IMPORTANT: reference by id so Swagger UI knows which scheme
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        { bearer, Array.Empty<string>() }
+        {
+            new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } },
+            Array.Empty<string>()
+        }
     });
 });
 
@@ -95,6 +110,11 @@ builder.Services.AddCors(o =>
          .AllowAnyMethod());
 });
 
+// Dependency Injections
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+
 // Construct Web App from above builder instance
 var app = builder.Build();
 
@@ -102,11 +122,34 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.DisplayRequestDuration();
+        c.EnablePersistAuthorization(); // <— keeps your JWT in session storage
+    });
 }
 
 // General Middleware
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
+
+
+// Ligtweight logging middleware
+app.Use(async (context, next) =>
+{
+    var start = DateTime.UtcNow;
+
+    await next.Invoke(); // call the rest of the pipeline
+
+    var elapsed = DateTime.UtcNow - start;
+    var method = context.Request.Method;
+    var path = context.Request.Path + context.Request.QueryString;
+    var status = context.Response.StatusCode;
+    var endpoint = context.GetEndpoint()?.DisplayName ?? "(no endpoint)";
+
+    Console.WriteLine($"[{DateTime.UtcNow:O}] {method} {path} -> {status} in {elapsed.TotalMilliseconds:F0} ms | {endpoint}");
+});
+
+
 app.UseCors();     // must be before MapControllers if you want it to apply to all endpoints
 app.UseAuthentication();
 app.UseAuthorization();
