@@ -16,12 +16,20 @@ export type MapMarker = {
 };
 
 type Props = {
-  region: Region; // parent controls this
+  /** Fully controlled region (parent owns state) */
+  region: Region;
+  /** Fires once the user stops panning/zooming */
   onRegionChangeComplete: (r: Region) => void;
-  markers: MapMarker[];
+
+  /** Markers to render. Optional so this component can be reused in “create report”. */
+  markers?: MapMarker[];
+
   onLongPress?: (e: LongPressEvent) => void;
   onMarkerPress?: (id: number) => void;
   loading?: boolean;
+
+  /** Optional hard bounds to keep the camera inside (defaults to Greater London). */
+  clampToLondon?: boolean;
 };
 
 // Approx Greater London bounds
@@ -55,24 +63,25 @@ function clampRegion(r: Region, b = LONDON_BOUNDS): Region {
 export default function WTMap({
   region,
   onRegionChangeComplete,
-  markers,
+  markers = [],
   onLongPress,
   onMarkerPress,
   loading,
+  clampToLondon = true,
 }: Props) {
-  const clamped = clampRegion(region);
+  const clamped = clampToLondon ? clampRegion(region) : region;
 
   return (
     <View style={{ flex: 1 }}>
       <MapView
         style={{ flex: 1 }}
         provider={PROVIDER_GOOGLE}
-        // 🔒 controlled map (no initialRegion)
-        region={clamped}
-        // optional UX guards; tweak to taste
+        region={clamped}                 // 🔒 controlled map (no initialRegion)
         minZoomLevel={9}
         maxZoomLevel={18}
-        onRegionChangeComplete={(r) => onRegionChangeComplete(clampRegion(r))}
+        onRegionChangeComplete={(r) =>
+          onRegionChangeComplete(clampToLondon ? clampRegion(r) : r)
+        }
         onLongPress={onLongPress}
       >
         {markers.map((m) => (

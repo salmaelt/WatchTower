@@ -46,6 +46,7 @@ export default function LoginScreen() {
           autoCorrect={false}
           editable={!busy}
           style={[s.input, busy && s.inputDisabled]}
+          placeholderTextColor="#666"
         />
         <TextInput
           placeholder="Password"
@@ -54,6 +55,7 @@ export default function LoginScreen() {
           secureTextEntry
           editable={!busy}
           style={[s.input, busy && s.inputDisabled]}
+          placeholderTextColor="#666"
         />
 
         <LoadingButton

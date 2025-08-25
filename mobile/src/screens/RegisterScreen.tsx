@@ -54,6 +54,7 @@ export default function RegisterScreen() {
           autoCorrect={false}
           editable={!busy}
           style={[s.input, busy && s.inputDisabled]}
+          placeholderTextColor="#666"
         />
         <TextInput
           placeholder="Email"
@@ -63,6 +64,7 @@ export default function RegisterScreen() {
           keyboardType="email-address"
           editable={!busy}
           style={[s.input, busy && s.inputDisabled]}
+          placeholderTextColor="#666"
         />
         <TextInput
           placeholder="Password"
@@ -71,6 +73,7 @@ export default function RegisterScreen() {
           secureTextEntry
           editable={!busy}
           style={[s.input, busy && s.inputDisabled]}
+          placeholderTextColor="#666"
         />
         <TextInput
           placeholder="Confirm password"
@@ -79,6 +82,7 @@ export default function RegisterScreen() {
           secureTextEntry
           editable={!busy}
           style={[s.input, busy && s.inputDisabled]}
+          placeholderTextColor="#666"
         />
 
         <LoadingButton

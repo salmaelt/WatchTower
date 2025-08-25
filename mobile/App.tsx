@@ -1,6 +1,6 @@
 import React from 'react';
 import { AuthProvider, useAuth } from "./src/auth/AuthContext";
-import { Pressable } from 'react-native';
+import { Pressable, Alert } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer, NavigatorScreenParams } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -52,7 +52,10 @@ const MapStackNav = createNativeStackNavigator<MapStackParamList>();
 const ReportsStackNav = createNativeStackNavigator<ReportsStackParamList>();
 const ProfileStackNav = createNativeStackNavigator<ProfileStackParamList>();
 
+// App.tsx
 function MapStack() {
+  const { token } = useAuth(); // <— read auth here
+
   return (
     <MapStackNav.Navigator>
       <MapStackNav.Screen
@@ -62,25 +65,42 @@ function MapStack() {
           title: 'Map',
           headerRight: () => (
             <Pressable
-              onPress={() => navigation.navigate('CreateReport')}
               hitSlop={8}
               style={{ paddingHorizontal: 8 }}
+              onPress={() => {
+                if (token) {
+                  navigation.navigate('CreateReport');
+                } else {
+                  // polite gate
+                  Alert.alert(
+                    'Login required',
+                    'You need to log in to create a report.',
+                    [
+                      { text: 'Not now', style: 'cancel' },
+                      {
+                        text: 'Log in',
+                        style: 'default',
+                        onPress: () =>
+                          (navigation as any).navigate('ProfileTab', {
+                            screen: 'Login',
+                            params: {
+                              // after login, return to CreateReport
+                              redirectTo: { tab: 'MapTab', screen: 'CreateReport' },
+                            },
+                          }),
+                      },
+                    ]
+                  );
+                }
+              }}
             >
               <Ionicons name="add-circle-outline" size={24} />
             </Pressable>
           ),
         })}
       />
-      <MapStackNav.Screen
-        name="CreateReport"
-        component={CreateReportScreen}
-        options={{ title: 'Create Report' }}
-      />
-      <MapStackNav.Screen
-        name="ReportDetail"
-        component={ReportDetailScreen}
-        options={{ title: 'Report' }}
-      />
+      <MapStackNav.Screen name="CreateReport" component={CreateReportScreen} options={{ title: 'Create Report' }} />
+      <MapStackNav.Screen name="ReportDetail" component={ReportDetailScreen} options={{ title: 'Report' }} />
     </MapStackNav.Navigator>
   );
 }
