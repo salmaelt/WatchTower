@@ -38,14 +38,16 @@ namespace WatchtowerApi.Controllers
             {
                 // Check if call is anonymous, or gather user id
                 long? currentUserId = AuthHelpers.TryGetUserId(User);
-
+                
+                // Check there is a bounded box
                 if (string.IsNullOrWhiteSpace(query.Bbox))
                     return BadRequest("bbox parameter is required.");
                 
-                // Longitude is x axis, latitude is y axis DOUBLE CHECK!!!
+                // Format bounded box
                 if (!TryParseBbox(query.Bbox, out var env))
                     return BadRequest("Invalid bbox format. Expected minLng,minLat,maxLng,maxLat.");
 
+                // Fetch reports within bounded box
                 var (minLng, minLat, maxLng, maxLat) = (env.MinX, env.MinY, env.MaxX, env.MaxY);
                 var reports = await _reportRepository.GetReportsInBoundedBoxAsync(minLng, minLat, maxLng, maxLat);
 
@@ -61,6 +63,7 @@ namespace WatchtowerApi.Controllers
                 if (query.To.HasValue)
                     reports = reports.Where(r => r.OccurredAt <= query.To.Value.UtcDateTime);
 
+                // Format into GeoJSON
                 var featureCollection = new GeoJsonFeatureCollection<ReportPropertiesDto>();
                 foreach (Report r in reports)
                 {
@@ -77,6 +80,7 @@ namespace WatchtowerApi.Controllers
                     });
                 }
 
+                // Success Response
                 return Ok(featureCollection);
             }
             catch (Exception e)
@@ -103,14 +107,14 @@ namespace WatchtowerApi.Controllers
                 if (report == null)
                     return NotFound();
 
-                // Change 
+                // Check if post upvoted if caller authorised.
                 bool upvotedByMe = false;
                 if (currentUserId != null)
                 {
                     upvotedByMe = report.UpvoteUsers.Any(u => u.UserId == currentUserId);
                 }
 
-
+                // Format into GeoJson
                 var feature = new GeoJsonFeature<ReportPropertiesDto>
                 {
                     Geometry = new GeoJsonPoint { Coordinates = new[] { report.Location.X, report.Location.Y } },
