@@ -81,6 +81,11 @@ if (string.IsNullOrWhiteSpace(issuer) ||
 {
     throw new InvalidOperationException("JWT configuration missing (Jwt:Issuer/Audience/Key).");
 }
+if (builder.Environment.IsDevelopment())
+{
+    //Console.WriteLine($"[DEBUG] Jwt:Key = \"{key}\" (length: {key.Length} chars)");
+    if (key.Length < 32) throw new Exception("Key not read correctly from appsettings.Development.");
+}
 builder.Services.AddScoped<IUserAuthService, JwtUserAuthService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
