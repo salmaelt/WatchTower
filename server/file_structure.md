@@ -27,16 +27,17 @@ server/
    │  └─ Comment.cs
    │
    ├─ Infrastructure/                     # Layer 3: Data access (EF Core + PostGIS)
-   │  ├─ AppDbContext.cs                  # HasPostgresExtension("postgis"), DbSets, mappings
+   │  ├─ AppDbContext.cs                   # HasPostgresExtension("postgis"), DbSets, mappings
+   │  └─ Auth/      
+   │     ├─ IAuthService.cs
+   │     └─ AuthService.cs                # Password Hash, JWT creation, Password verification
    │  └─ Repositories/                    # Interfaces + EF implementations (kept together for speed)
-   │     ├─ IUserRepository.cs
-   │     ├─ IUserAuthService.cs           # simple auth service interface (JWT issuance)
+   │     ├─ IUserRepository.cs        
    │     ├─ IReportRepository.cs
    │     ├─ ICommentRepository.cs
    │     ├─ UserRepository.cs
    │     ├─ ReportRepository.cs           # bbox filter, GiST index usage
-   │     ├─ CommentRepository.cs
-   │     └─ AuthService.cs                # password hash + JWT creation (lean)
+   │     └─ CommentRepository.cs
    │
    ├─ Migrations/                         # EF Core migrations (include in git)
    │  ├─ 2025xxxxxx_InitialCreate.cs      # CREATE EXTENSION postgis; tables, FKs, GiST index
