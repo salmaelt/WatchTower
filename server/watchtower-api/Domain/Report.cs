@@ -19,6 +19,8 @@ namespace WatchtowerApi.Domain
         public Point Location { get; set; } = default!;  // geometry(Point,4326)
         public string Status { get; set; } = "open";
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset? UpdatedAt { get; set; }
         public int Upvotes { get; set; } = 0;
+        public ICollection<ReportUpvote> UpvoteUsers { get; } = new HashSet<ReportUpvote>();
     }
 }

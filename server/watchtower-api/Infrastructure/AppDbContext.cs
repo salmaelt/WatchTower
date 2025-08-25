@@ -1,6 +1,5 @@
 //Infrastructure/AppDbContext.cs
 using Microsoft.EntityFrameworkCore;
-using NetTopologySuite.Geometries;
 using WatchtowerApi.Domain;
 
 namespace WatchtowerApi.Infrastructure
@@ -12,11 +11,15 @@ namespace WatchtowerApi.Infrastructure
         public DbSet<User> Users => Set<User>();
         public DbSet<Report> Reports => Set<Report>();
         public DbSet<Comment> Comments => Set<Comment>();
+        public DbSet<ReportUpvote> ReportUpvotes => Set<ReportUpvote>();
+        public DbSet<CommentUpvote> CommentUpvotes => Set<CommentUpvote>();
 
         // Mapping model entities to SQL records, generates the sql schema in the db
         protected override void OnModelCreating(ModelBuilder b)
         {
+            // Superclass constructor
             base.OnModelCreating(b);
+
             // Enable PostGIS extension
             b.HasPostgresExtension("postgis");
 
@@ -32,7 +35,6 @@ namespace WatchtowerApi.Infrastructure
                 .HasColumnType("text")
                 .IsRequired()
                 .HasColumnName("username");
-
                 e.HasIndex(x => x.Username)         // Indexed to speed up queries
                 .IsUnique()
                 .HasDatabaseName("users_username_idx");
@@ -41,8 +43,7 @@ namespace WatchtowerApi.Infrastructure
                     .HasColumnType("text")
                     .IsRequired()
                     .HasColumnName("email");
-
-                e.HasIndex(x => x.Email)                           
+                e.HasIndex(x => x.Email)
                     .IsUnique()
                     .HasDatabaseName("users_email_idx");
 
@@ -72,12 +73,10 @@ namespace WatchtowerApi.Infrastructure
                 e.Property(x => x.UserId)           // FOREIGN KEY to users(id)
                 .IsRequired()
                 .HasColumnName("user_id");
-
                 e.HasOne(x => x.User)               // Navigation: Report -> User
                 .WithMany(u => u.Reports)          // Inverse
                 .HasForeignKey(x => x.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
-                // .HasConstraintName("fk_reports_user_id_users_id"); // optional explicit FK name
+                .OnDelete(DeleteBehavior.Cascade);
 
                 e.Property(x => x.Type)             // Type of report (Text)
                 .HasColumnType("text")
@@ -97,7 +96,6 @@ namespace WatchtowerApi.Infrastructure
                 .HasColumnType("geometry(Point,4326)")
                 .IsRequired()
                 .HasColumnName("location");
-
                 e.HasIndex(x => x.Location)         // Spatial index for bbox / intersects queries
                 .HasMethod("gist")
                 .HasDatabaseName("reports_location_gist");
@@ -111,6 +109,10 @@ namespace WatchtowerApi.Infrastructure
                 .HasColumnType("timestamptz")
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
+
+                e.Property(x => x.UpdatedAt)        // UpdatedAt (nullable)
+                .HasColumnType("timestamptz")
+                .HasColumnName("updated_at");
 
                 e.Property(x => x.Upvotes)          // Upvotes (default 0)
                 .HasDefaultValue(0)
@@ -147,6 +149,10 @@ namespace WatchtowerApi.Infrastructure
                 .IsRequired()
                 .HasColumnName("user_id");
 
+                e.Property(x => x.Upvotes)        // Upvotes (INT)
+                .HasColumnName("upvotes")
+                .HasDefaultValue(0);
+
                 e.HasOne(x => x.Report)             // Navigation: Comment -> Report
                 .WithMany()                        // (or .WithMany(r => r.Comments) if you expose Report.Comments)
                 .HasForeignKey(x => x.ReportId)
@@ -156,14 +162,71 @@ namespace WatchtowerApi.Infrastructure
                 e.HasOne(x => x.User)               // Navigation: Comment -> User
                 .WithMany(u => u.Comments)         // Inverse: User.Comments
                 .HasForeignKey(x => x.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
                 // .HasConstraintName("fk_comments_user_id_users_id"); // optional
 
                 // (Optional) indexes to speed up lookups:
                 // e.HasIndex(x => x.ReportId).HasDatabaseName("comments_report_id_idx");
                 // e.HasIndex(x => x.UserId).HasDatabaseName("comments_user_id_idx");
             });
-}
 
+            // Report Upvotes Table
+            b.Entity<ReportUpvote>(e =>
+            {
+                e.ToTable("report_upvotes");
+
+                e.HasKey(x => new { x.ReportId, x.UserId }); // composite PK enforces uniqueness
+
+                e.Property(x => x.ReportId). // FK ReportID
+                HasColumnName("report_id");
+
+                e.Property(x => x.UserId).  // FK UserID
+                HasColumnName("user_id");
+
+                e.Property(x => x.CreatedAt) // Time CreatedAt
+                .HasColumnType("timestamptz")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+
+                e.HasOne(x => x.Report)
+                    .WithMany(r => r.UpvoteUsers)
+                    .HasForeignKey(x => x.ReportId)
+                    .OnDelete(DeleteBehavior.Cascade); // delete report -> delete its upvotes
+
+                e.HasOne(x => x.User)
+                    .WithMany(u => u.ReportUpvotes)
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Cascade); // delete user -> delete their upvotes
+            });
+
+            // Comment Upvotes Table
+            b.Entity<CommentUpvote>(e =>
+            {
+                e.ToTable("comment_upvotes");
+
+                e.HasKey(x => new { x.CommentId, x.UserId }); // composite PK
+
+                e.Property(x => x.CommentId). // FK Comment
+                HasColumnName("comment_id");
+
+                e.Property(x => x.UserId) // FK User
+                .HasColumnName("user_id");
+
+                e.Property(x => x.CreatedAt) // Time CreatedAt
+                .HasColumnType("timestamptz")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("created_at");
+
+                e.HasOne(x => x.Comment)  
+                    .WithMany(c => c.UpvoteUsers)
+                    .HasForeignKey(x => x.CommentId)
+                    .OnDelete(DeleteBehavior.Cascade); // delete comment -> delete its upvotes
+
+                e.HasOne(x => x.User)
+                    .WithMany(u => u.CommentUpvotes)
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Cascade); // delete user -> delete their upvotes
+            });
+        }
     }
 }

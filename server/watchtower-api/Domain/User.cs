@@ -16,5 +16,7 @@ namespace WatchtowerApi.Domain
         // Navigation (not actual DB columns), specific to EF CORE
         public ICollection<Report> Reports { get; } = new HashSet<Report>();
         public ICollection<Comment> Comments { get; } = new HashSet<Comment>();
+        public ICollection<ReportUpvote> ReportUpvotes { get; } = new HashSet<ReportUpvote>();
+        public ICollection<CommentUpvote> CommentUpvotes { get; } = new HashSet<CommentUpvote>();
     }
 }

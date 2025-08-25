@@ -9,6 +9,7 @@ server/TheftApi/Migrations/*Designer.cs
 
 # Env
 **/.env*
+**/appsettings.Development.json
 !client/.env.example
 
 # Misc
