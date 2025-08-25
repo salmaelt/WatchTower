@@ -1,3 +1,5 @@
+// Controllers/AuthController.cs
+
 // External dependencies
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -99,23 +101,9 @@ namespace WatchtowerApi.Controllers
 
             try
             {
-                // Write to centralised logger:
-                //Console.WriteLine($"Login attempt for: {request.UsernameOrEmail}");
-
                 // Fetch user by username  or email
                 var user = await _userRepository.GetByUsernameAsync(request.UsernameOrEmail)
                         ?? await _userRepository.GetByEmailAsync(request.UsernameOrEmail);
-
-                //Console.WriteLine($"User found: {user != null}");
-                /*
-                if (user != null)
-                {
-                    Console.WriteLine($"User ID: {user.Id}, Username: {user.Username}, Email: {user.Email}");
-                    Console.WriteLine($"Stored hash: {user.PasswordHash}");
-
-                    bool passwordMatch = _userAuthService.VerifyPassword(request.Password, user.PasswordHash);
-                    Console.WriteLine($"Password verification result: {passwordMatch}");
-                } */
 
                 if (user == null || !_userAuthService.VerifyPassword(request.Password, user.PasswordHash))
                 {
@@ -136,11 +124,9 @@ namespace WatchtowerApi.Controllers
                 // Success response
                 return Ok(response);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Error handling and server failure response
-                Console.WriteLine(ex); // Log for debugging
-                return Problem("Login failed: " + ex.Message, statusCode: 500);
+                return Problem($"Could not log in user.", statusCode: 500);
             }
         }
 

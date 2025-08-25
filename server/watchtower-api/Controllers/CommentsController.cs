@@ -1,6 +1,10 @@
 // Controllers/CommentsController.cs
+
+// External Dependencies
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
+// Internal Dependencies
 using WatchtowerApi.Contracts;
 using WatchtowerApi.Infrastructure.Auth;
 using WatchtowerApi.Infrastructure.Repositories;
