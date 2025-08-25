@@ -1,20 +1,23 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, Pressable, Alert, StyleSheet } from "react-native";
+import { View, Text, TextInput, Pressable, Alert, StyleSheet } from "react-native";
 import { useAuth } from "../auth/AuthContext";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import DismissKeyboard from "../components/DismissKeyboard";
+import LoadingButton from "../components/LoadingButton";
 
 export default function RegisterScreen() {
   const [username, setU] = useState("");
   const [email, setE] = useState("");
   const [password, setP] = useState("");
   const [confirm, setC] = useState("");
+  const [busy, setBusy] = useState(false);
+
   const { register } = useAuth();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const redirectTo = route.params?.redirectTo as { tab?: string; screen: string; params?: any } | undefined;
 
-  const onSubmit = async () => {
+  const handleRegister = async () => {
     if (!username.trim() || !email.trim() || !password) {
       Alert.alert("Missing info", "Please fill in all fields.");
       return;
@@ -48,7 +51,9 @@ export default function RegisterScreen() {
           value={username}
           onChangeText={setU}
           autoCapitalize="none"
-          style={s.input}
+          autoCorrect={false}
+          editable={!busy}
+          style={[s.input, busy && s.inputDisabled]}
         />
         <TextInput
           placeholder="Email"
@@ -56,29 +61,36 @@ export default function RegisterScreen() {
           onChangeText={setE}
           autoCapitalize="none"
           keyboardType="email-address"
-          style={s.input}
+          editable={!busy}
+          style={[s.input, busy && s.inputDisabled]}
         />
         <TextInput
           placeholder="Password"
           value={password}
           onChangeText={setP}
           secureTextEntry
-          style={s.input}
+          editable={!busy}
+          style={[s.input, busy && s.inputDisabled]}
         />
         <TextInput
           placeholder="Confirm password"
           value={confirm}
           onChangeText={setC}
           secureTextEntry
-          style={s.input}
+          editable={!busy}
+          style={[s.input, busy && s.inputDisabled]}
         />
 
-        <Button title="Create account" onPress={onSubmit} />
+        <LoadingButton
+          title="Create account"
+          onPressAsync={handleRegister}
+          onLoadingChange={setBusy}
+        />
 
         <View style={{ height: 12 }} />
         <Text style={s.muted}>Already have an account?</Text>
-        <Pressable onPress={() => (navigation as any).navigate("Login", { redirectTo })}>
-          <Text style={s.link}>Log in here</Text>
+        <Pressable disabled={busy} onPress={() => (navigation as any).navigate("Login", { redirectTo })}>
+          <Text style={[s.link, busy && { opacity: 0.5 }]}>Log in here</Text>
         </Pressable>
       </View>
     </DismissKeyboard>
@@ -92,6 +104,7 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: "#ddd", backgroundColor: "#fafafa",
     borderRadius: 10, paddingHorizontal: 10, paddingVertical: 10, marginBottom: 10,
   },
+  inputDisabled: { opacity: 0.6 },
   muted: { textAlign: "center", opacity: 0.7, marginTop: 4 },
   link: { textAlign: "center", fontWeight: "600", marginTop: 6 },
 });
