@@ -210,7 +210,7 @@ export default function CreateReportScreen() {
 
 const styles = StyleSheet.create({
   form: {
-    backgroundColor: "#8faa97ff",
+    backgroundColor: "#ffffffff",
   },
   formInner: {
     padding: 12,
