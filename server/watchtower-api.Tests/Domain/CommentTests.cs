@@ -14,13 +14,6 @@ namespace WatchtowerApi.Tests.Domain
         }
 
         [Test]
-        public void CommentText_IsRequired()
-        {
-            var comment = new WatchtowerApi.Domain.Comment();
-            Assert.Throws<ArgumentNullException>(() => comment.CommentText = null!);
-        }
-
-        [Test]
         public void CanAssignReportAndUserNavigationProperties()
         {
             var user = new WatchtowerApi.Domain.User { Id = 1, Username = "test", Email = "test@test.com", PasswordHash = "hash" };

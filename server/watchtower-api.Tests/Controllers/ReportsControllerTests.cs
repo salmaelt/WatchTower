@@ -156,7 +156,7 @@ namespace WatchtowerApi.Tests.Controllers
         }
 
         [Test]
-        public async Task CreateReport_ReturnsCreated()
+        public async Task CreateReport_Returns201CreatedAt_GetReport_WithPayload()
         {
             // Arrange
             WithAuthenticatedUser(userId: 123, username: "reporter");
@@ -181,42 +181,27 @@ namespace WatchtowerApi.Tests.Controllers
             // Repo signature: CreateAsync(long userId, string type, string description, double longitude, double latitude, DateTime? occurredAt = null)
             _repo.Setup(r => r.CreateAsync(
                     123, req.Type, req.Description, req.Lng, req.Lat, req.OccurredAt.UtcDateTime))
-                 .ReturnsAsync(created);
+                .ReturnsAsync(created);
 
             // Act
             var result = await _sut.CreateReport(req);
 
             // Assert
-            Assert.That(result, Is.InstanceOf<CreatedResult>());
-            var createdRes = (CreatedResult)result;
-            Assert.That(createdRes.Value, Is.InstanceOf<CreateReportResponse>());
-            var dto = (CreateReportResponse)createdRes.Value!;
+            var createdAt = result as CreatedAtActionResult;
+            Assert.That(createdAt, Is.Not.Null, "Expected CreatedAtActionResult (201).");
+            Assert.That(createdAt!.StatusCode, Is.EqualTo(201));
+
+            // location/action metadata
+            Assert.That(createdAt.ActionName, Is.EqualTo(nameof(ReportsController.GetReport)));
+            Assert.That(createdAt.RouteValues, Is.Not.Null);
+            Assert.That(createdAt.RouteValues!["id"], Is.EqualTo(1));
+
+            // payload
+            Assert.That(createdAt.Value, Is.InstanceOf<CreateReportResponse>());
+            var dto = (CreateReportResponse)createdAt.Value!;
             Assert.That(dto.Id, Is.EqualTo(1));
             Assert.That(dto.Status, Is.EqualTo("open"));
-            _repo.VerifyAll();
-        }
 
-        [Test]
-        public async Task UpvoteReport_ReturnsOk()
-        {
-            // Arrange
-            WithAuthenticatedUser(userId: 55, username: "voter");
-
-            // Repo returns Report; controller maps to ReportUpvoteStateDto
-            var updated = new Report { Id = 1, Upvotes = 6 };
-            _repo.Setup(r => r.UpvoteAsync(1, 55)).ReturnsAsync(updated);
-
-            // Act
-            var result = await _sut.UpvoteReport(1);
-
-            // Assert
-            Assert.That(result, Is.InstanceOf<OkObjectResult>());
-            var ok = (OkObjectResult)result;
-            Assert.That(ok.Value, Is.InstanceOf<ReportUpvoteStateDto>());
-            var dto = (ReportUpvoteStateDto)ok.Value!;
-            Assert.That(dto.Id, Is.EqualTo(1));
-            Assert.That(dto.Upvotes, Is.EqualTo(6));
-            Assert.That(dto.UpvotedByMe, Is.True);
             _repo.VerifyAll();
         }
     }

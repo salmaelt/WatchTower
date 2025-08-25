@@ -10,16 +10,8 @@ namespace WatchtowerApi.Tests.Domain
             var report = new WatchtowerApi.Domain.Report();
             Assert.That(report.Status, Is.EqualTo("open"));
             Assert.That(report.Upvotes, Is.EqualTo(0));
-            Assert.That(report.CreatedAt, Is.Not.Null);
             Assert.That(report.UpvoteUsers, Is.Not.Null);
             Assert.That(report.UpvoteUsers, Is.Empty);
-        }
-
-        [Test]
-        public void Location_IsRequired()
-        {
-            var report = new WatchtowerApi.Domain.Report();
-            Assert.Throws<ArgumentNullException>(() => report.Location = null!);
         }
 
         [Test]

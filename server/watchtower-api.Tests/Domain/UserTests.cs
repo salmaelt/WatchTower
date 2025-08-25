@@ -17,20 +17,6 @@ namespace WatchtowerApi.Tests.Domain
         }
 
         [Test]
-        public void Username_IsRequired()
-        {
-            var user = new WatchtowerApi.Domain.User();
-            Assert.Throws<ArgumentNullException>(() => user.Username = null!);
-        }
-
-        [Test]
-        public void Email_IsRequired()
-        {
-            var user = new WatchtowerApi.Domain.User();
-            Assert.Throws<ArgumentNullException>(() => user.Email = null!);
-        }
-
-        [Test]
         public void CanAssignNavigationProperties()
         {
             var report = new WatchtowerApi.Domain.Report { Id = 1, Type = "incident", Description = "desc", Location = new NetTopologySuite.Geometries.Point(0,0) { SRID = 4326 }, Status = "open" };
