@@ -145,8 +145,8 @@ namespace WatchtowerApi.Controllers
                     currentUserId,
                     request.Type,
                     request.Description,
-                    request.Lat,
                     request.Lng,
+                    request.Lat,
                     request.OccurredAt.UtcDateTime);
 
                 // Construct outgoing DTO

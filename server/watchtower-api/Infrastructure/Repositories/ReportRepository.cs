@@ -101,19 +101,6 @@ public class ReportRepository : IReportRepository
         return report;
     }
 
-    private async Task<Report> UpdateUpvotesInternalAsync(long id, int upvotes)
-    {
-        var report = await _context.Reports.FindAsync(id);
-        if (report == null)
-            throw new InvalidOperationException($"Report with ID {id} not found");
-
-        report.Upvotes = upvotes;
-        report.UpdatedAt = DateTimeOffset.UtcNow;
-
-        await _context.SaveChangesAsync();
-        return report;
-    }
-
     public async Task<IEnumerable<Report>> GetByUserIdAsync(long userId)
     {
         return await _context.Reports
@@ -142,23 +129,30 @@ public class ReportRepository : IReportRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Report>> GetReportsInBoundedBoxAsync(
-        double minLongitude, double minLatitude, double maxLongitude, double maxLatitude, 
+     public async Task<IEnumerable<Report>> GetReportsInBoundedBoxAsync(
+        double minLongitude, double minLatitude, double maxLongitude, double maxLatitude,
         string? type = null, string? status = null)
     {
-        // Create bounding box geometry
+        // Normalize just in case (west<=east, south<=north)
+        if (minLongitude > maxLongitude) (minLongitude, maxLongitude) = (maxLongitude, minLongitude);
+        if (minLatitude  > maxLatitude)  (minLatitude,  maxLatitude)  = (maxLatitude,  minLatitude);
+
+        // Build bbox polygon (X=lng, Y=lat) in WGS84
         var envelope = new Envelope(minLongitude, maxLongitude, minLatitude, maxLatitude);
         var boundingBox = _geometryFactory.ToGeometry(envelope);
+        boundingBox.SRID = 4326;
 
         var query = _context.Reports
+            .AsNoTracking()
             .Include(r => r.User)
             .Include(r => r.UpvoteUsers)
-            .Where(r => r.Location.Within(boundingBox));
+            // Include boundary points and keep PostGIS semantics users expect for "bbox"
+            .Where(r => r.Location.Intersects(boundingBox));
 
-        if (!string.IsNullOrEmpty(type))
+        if (!string.IsNullOrWhiteSpace(type))
             query = query.Where(r => r.Type == type);
 
-        if (!string.IsNullOrEmpty(status))
+        if (!string.IsNullOrWhiteSpace(status))
             query = query.Where(r => r.Status == status);
 
         return await query
