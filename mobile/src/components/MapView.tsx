@@ -3,7 +3,7 @@ import MapView, {
   Marker,
   Region,
   PROVIDER_GOOGLE,
-  LongPressEvent, // ✅ correct type for onLongPress
+  LongPressEvent,
 } from "react-native-maps";
 import { View, ActivityIndicator } from "react-native";
 
@@ -16,13 +16,41 @@ export type MapMarker = {
 };
 
 type Props = {
-  region: Region;
+  region: Region; // parent controls this
   onRegionChangeComplete: (r: Region) => void;
   markers: MapMarker[];
-  onLongPress?: (e: LongPressEvent) => void; // ✅ fixed
+  onLongPress?: (e: LongPressEvent) => void;
   onMarkerPress?: (id: number) => void;
   loading?: boolean;
 };
+
+// Approx Greater London bounds
+const LONDON_BOUNDS = {
+  minLat: 51.261, // south
+  maxLat: 51.686, // north
+  minLng: -0.563, // west
+  maxLng: 0.280,  // east
+};
+
+function clampRegion(r: Region, b = LONDON_BOUNDS): Region {
+  // Prevent zooming out beyond the bbox
+  const maxLatDelta = b.maxLat - b.minLat;
+  const maxLngDelta = b.maxLng - b.minLng;
+
+  let latitudeDelta = Math.min(r.latitudeDelta, maxLatDelta);
+  let longitudeDelta = Math.min(r.longitudeDelta, maxLngDelta);
+
+  // Keep the visible corners inside bounds
+  const minLatCenter = b.minLat + latitudeDelta / 2;
+  const maxLatCenter = b.maxLat - latitudeDelta / 2;
+  const minLngCenter = b.minLng + longitudeDelta / 2;
+  const maxLngCenter = b.maxLng - longitudeDelta / 2;
+
+  const latitude = Math.min(Math.max(r.latitude, minLatCenter), maxLatCenter);
+  const longitude = Math.min(Math.max(r.longitude, minLngCenter), maxLngCenter);
+
+  return { latitude, longitude, latitudeDelta, longitudeDelta };
+}
 
 export default function WTMap({
   region,
@@ -32,14 +60,20 @@ export default function WTMap({
   onMarkerPress,
   loading,
 }: Props) {
+  const clamped = clampRegion(region);
+
   return (
     <View style={{ flex: 1 }}>
       <MapView
         style={{ flex: 1 }}
         provider={PROVIDER_GOOGLE}
-        initialRegion={region}
-        onRegionChangeComplete={onRegionChangeComplete}
-        onLongPress={onLongPress} // ✅ now correctly typed
+        // 🔒 controlled map (no initialRegion)
+        region={clamped}
+        // optional UX guards; tweak to taste
+        minZoomLevel={9}
+        maxZoomLevel={18}
+        onRegionChangeComplete={(r) => onRegionChangeComplete(clampRegion(r))}
+        onLongPress={onLongPress}
       >
         {markers.map((m) => (
           <Marker
