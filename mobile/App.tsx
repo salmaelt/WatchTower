@@ -205,8 +205,8 @@ export default function App() {
                 tabBarItemStyle: { paddingVertical: 4, borderRadius: 14 },
                 tabBarStyle: {
                   position: 'absolute',
-                  left: 16,
-                  right: 16,
+                  left: sideInset,
+                  right: sideInset,
                   bottom: 16,
                   height: 64,
                   borderRadius: 20,
