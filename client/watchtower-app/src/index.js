@@ -11,3 +11,6 @@ root.render(
   </React.StrictMode>
 );
 
+
+//import { StrictMode } from 'react'
+//import { createRoot } from 'react-dom/client'
