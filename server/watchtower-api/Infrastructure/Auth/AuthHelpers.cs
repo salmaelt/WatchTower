@@ -20,5 +20,15 @@ namespace WatchtowerApi.Infrastructure.Auth
                 throw new InvalidOperationException("Missing/invalid unique_name claim");
             return uname.Value;
         }
+
+        public static long? TryGetUserId(ClaimsPrincipal principal)
+        {
+            if (principal?.Identity?.IsAuthenticated != true) return null;
+
+            var sub = principal.FindFirst(JwtRegisteredClaimNames.Sub)
+                   ?? principal.FindFirst(ClaimTypes.NameIdentifier);
+
+            return long.TryParse(sub?.Value, out var id) ? id : (long?)null;
+        }
     }
 }

@@ -1,110 +1,139 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using WatchtowerApi.Domain;
-using WatchtowerApi.Infrastructure;
+// Controllers/CommentsController.cs
 
-// FE -> JSON -> DTO -> Models -> Repository -> Model -> DTO -> JSON
+// External Dependencies
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+// Internal Dependencies
+using WatchtowerApi.Contracts;
+using WatchtowerApi.Infrastructure.Auth;
+using WatchtowerApi.Infrastructure.Repositories;
 
 namespace WatchtowerApi.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class CommentsController : ControllerBase
+    public sealed class CommentsController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly ICommentRepository _comments;
 
-        public CommentsController(AppDbContext context)
+        public CommentsController(ICommentRepository comments)
         {
-            _context = context;
+            _comments = comments;
         }
 
-        // GET: api/Comments
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Comment>>> GetComments()
+        // GET /reports/{id}/comments
+        [HttpGet("reports/{id:long}/comments")]
+        [ProducesResponseType(typeof(List<CommentDto>), 200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> ListForReport([FromRoute] long id)
         {
-            return await _context.Comments.ToListAsync();
+            // 404 if report not found
+            if (!await _comments.ReportExistsAsync(id))
+                return NotFound(new { error = "report not found" });
+
+            // If caller authorised, include information about upvotes
+            long? callerId = AuthHelpers.TryGetUserId(User);
+
+            // Repository call
+            List<CommentDto> items = await _comments.ListByReportAsync(id, callerId);
+
+            // Always 200 with array (possibly empty)
+            return Ok(items);
         }
 
-        // GET: api/Comments/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Comment>> GetComment(long id)
+        // POST /reports/{id}/comments
+        [Authorize]
+        [HttpPost("reports/{id:long}/comments")]
+        [ProducesResponseType(typeof(CommentDto), 201)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> Create([FromRoute] long id, [FromBody] CreateCommentRequest body)
         {
-            var comment = await _context.Comments.FindAsync(id);
+            // Validate comment is not empty
+            if (body == null || string.IsNullOrWhiteSpace(body.CommentText))
+                return Problem("Validation error: commentText is required.", statusCode: 400);
 
-            if (comment == null)
-            {
-                return NotFound();
-            }
-
-            return comment;
-        }
-
-        // PUT: api/Comments/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutComment(long id, Comment comment)
-        {
-            if (id != comment.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(comment).State = EntityState.Modified;
-
+            // Validate the report exists
+            if (!await _comments.ReportExistsAsync(id))
+                return NotFound(new { error = "report not found" });
             try
             {
-                await _context.SaveChangesAsync();
+                // Token Parsing
+                var userId = AuthHelpers.GetUserId(User);
+                var username = AuthHelpers.GetUsername(User);
+
+                // Creating comment, returns DTO
+                CommentDto created = await _comments.CreateAsync(id, userId, username, body.CommentText);
+
+                // 201 with payload
+                return StatusCode(201, created);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (InvalidOperationException)
             {
-                if (!CommentExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Problem("Bad Token", statusCode: 401);
             }
+            catch (Exception)
+            {
+                return Problem("Server Error", statusCode: 500);
+            }
+        }
+
+        // PUT /comments/{id}/upvote
+        [Authorize]
+        [HttpPut("comments/{id:long}/upvote")]
+        [ProducesResponseType(typeof(CommentUpvoteStateDto), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> Upvote([FromRoute] long id)
+        {
+            try
+            {
+                var userId = AuthHelpers.GetUserId(User);
+                var state = await _comments.UpvoteAsync(id, userId);
+                if (state == null) return NotFound(new { error = "comment not found" });
+
+                return Ok(state);
+            }
+            catch (InvalidOperationException)
+            {
+                // self-upvote not allowed
+                return Problem("Self-upvote not allowed.", statusCode: 400);
+            }
+        }
+
+        // DELETE /comments/{id}/upvote
+        [Authorize]
+        [HttpDelete("comments/{id:long}/upvote")]
+        [ProducesResponseType(typeof(CommentUpvoteStateDto), 200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> RemoveUpvote([FromRoute] long id)
+        {
+            var userId = AuthHelpers.GetUserId(User);
+            var state = await _comments.RemoveUpvoteAsync(id, userId);
+            if (state == null) return NotFound(new { error = "comment not found" });
+
+            return Ok(state);
+        }
+
+        // DELETE /comments/{id}
+        [Authorize]
+        [HttpDelete("comments/{id:long}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> Delete([FromRoute] long id)
+        {
+            var userId = AuthHelpers.GetUserId(User);
+            var isAdmin = User.IsInRole("admin");
+
+            var ok = await _comments.DeleteOwnedAsync(id, userId, isAdmin);
+            if (!ok) return NotFound(new { error = "comment not found" });
 
             return NoContent();
-        }
-
-        // POST: api/Comments
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Comment>> PostComment(Comment comment)
-        {
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetComment", new { id = comment.Id }, comment);
-        }
-
-        // DELETE: api/Comments/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteComment(long id)
-        {
-            var comment = await _context.Comments.FindAsync(id);
-            if (comment == null)
-            {
-                return NotFound();
-            }
-
-            _context.Comments.Remove(comment);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool CommentExists(long id)
-        {
-            return _context.Comments.Any(e => e.Id == id);
         }
     }
 }

@@ -1,132 +1,154 @@
+// Infrastructure/Repositories/CommentRepository.cs
 using Microsoft.EntityFrameworkCore;
+using WatchtowerApi.Contracts;
 using WatchtowerApi.Domain;
 
 namespace WatchtowerApi.Infrastructure.Repositories
 {
-    public class CommentRepository : ICommentRepository
+    public sealed class CommentRepository : ICommentRepository
     {
-        private readonly AppDbContext _context;
+        private readonly AppDbContext _db;
 
-        public CommentRepository(AppDbContext context)
+        public CommentRepository(AppDbContext db)
         {
-            _context = context;
+            _db = db;
         }
 
-        public async Task<Comment> CreateAsync(int reportId, int userId, string commentText)
+        // Check a report exists
+        public Task<bool> ReportExistsAsync(long reportId) =>
+            _db.Reports.AsNoTracking().AnyAsync(r => r.Id == reportId);
+
+        // Get comments for a report
+        public async Task<List<CommentDto>> ListByReportAsync(long reportId, long? callerUserId)
+        {
+            // Newest first
+            IQueryable<CommentDto> q = _db.Comments
+                .AsNoTracking()
+                .Where(c => c.ReportId == reportId)
+                .Select(c => new CommentDto
+                {
+                    Id = c.Id,
+                    UserId = c.UserId,
+                    Username = c.User!.Username,
+                    CommentText = c.CommentText,
+                    CreatedAt = c.CreatedAt,
+                    Upvotes = c.Upvotes,
+                    UpvotedByMe = callerUserId != null
+                        && _db.CommentUpvotes.Any(u => u.CommentId == c.Id && u.UserId == callerUserId.Value)
+                });
+
+            return await q.ToListAsync();
+        }
+
+        // Create a report
+        public async Task<CommentDto> CreateAsync(long reportId, long userId, string username, string commentText, DateTimeOffset? now = null)
         {
             var comment = new Comment
             {
                 ReportId = reportId,
                 UserId = userId,
-                CommentText = commentText
+                CommentText = commentText.Trim(),
+                CreatedAt = now ?? DateTimeOffset.UtcNow,
+                Upvotes = 0
             };
 
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
-            return comment;
-        }
+            _db.Comments.Add(comment);
+            await _db.SaveChangesAsync();
 
-        public async Task<Comment?> GetByIdAsync(int id)
-        {
-            return await _context.Comments
-                .Include(c => c.User)
-                .Include(c => c.UpvoteUsers)
-                .FirstOrDefaultAsync(c => c.Id == id);
-        }
-
-        public async Task<IEnumerable<Comment>> GetByReportIdAsync(int reportId)
-        {
-            return await _context.Comments
-                .Include(c => c.User)
-                .Include(c => c.UpvoteUsers)
-                .Where(c => c.ReportId == reportId)
-                .OrderByDescending(c => c.CreatedAt)
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<Comment>> GetByUserIdAsync(int userId)
-        {
-            return await _context.Comments
-                .Include(c => c.Report)
-                .Include(c => c.UpvoteUsers)
-                .Where(c => c.UserId == userId)
-                .OrderByDescending(c => c.CreatedAt)
-                .ToListAsync();
-        }
-
-        public async Task<Comment> UpdateAsync(int id, string commentText)
-        {
-            var comment = await _context.Comments.FindAsync(id);
-            if (comment == null) throw new KeyNotFoundException("Comment not found");
-
-            comment.CommentText = commentText;
-            comment.Upvotes = comment.Upvotes; // keep current upvotes
-
-            _context.Comments.Update(comment);
-            await _context.SaveChangesAsync();
-
-            return comment;
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            var comment = await _context.Comments
-                .Include(c => c.UpvoteUsers)
-                .FirstOrDefaultAsync(c => c.Id == id);
-
-            if (comment == null) return;
-
-            _context.Set<CommentUpvote>().RemoveRange(comment.UpvoteUsers);
-            _context.Comments.Remove(comment);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task<int> GetCountByReportAsync(int reportId)
-        {
-            return await _context.Comments.CountAsync(c => c.ReportId == reportId);
-        }
-
-        public async Task<int> GetCountByUserAsync(int userId)
-        {
-            return await _context.Comments.CountAsync(c => c.UserId == userId);
-        }
-
-        public async Task UpvoteAsync(long commentId, int userId)
-        {
-            var comment = await _context.Comments
-                .Include(c => c.UpvoteUsers)
-                .FirstOrDefaultAsync(c => c.Id == commentId);
-
-            if (comment == null || comment.UserId == userId) return;
-
-            if (!comment.UpvoteUsers.Any(u => u.UserId == userId))
+            return new CommentDto
             {
-                comment.UpvoteUsers.Add(new CommentUpvote
+                Id = comment.Id,
+                UserId = userId,
+                Username = username,
+                CommentText = comment.CommentText,
+                CreatedAt = comment.CreatedAt,
+                Upvotes = 0,
+                UpvotedByMe = false
+            };
+        }
+
+        public async Task<CommentUpvoteStateDto?> UpvoteAsync(long commentId, long userId)
+        {
+            var comment = await _db.Comments.FirstOrDefaultAsync(c => c.Id == commentId);
+            if (comment == null) return null;
+
+            if (comment.UserId == userId)
+            {
+                // self-upvote blocked by spec
+                throw new InvalidOperationException("Self-upvote not allowed");
+            }
+
+            var existing = await _db.CommentUpvotes.FindAsync(commentId, userId);
+            if (existing != null)
+            {
+                // Idempotent: already upvoted
+                return new CommentUpvoteStateDto
                 {
-                    CommentId = commentId,
-                    UserId = userId
-                });
-
-                comment.Upvotes += 1;
-                await _context.SaveChangesAsync();
+                    Id = comment.Id,
+                    Upvotes = comment.Upvotes,
+                    UpvotedByMe = true
+                };
             }
+
+            // Create upvote + increment counter
+            _db.CommentUpvotes.Add(new CommentUpvote { CommentId = commentId, UserId = userId });
+            comment.Upvotes += 1;
+
+            await _db.SaveChangesAsync();
+
+            return new CommentUpvoteStateDto
+            {
+                Id = comment.Id,
+                Upvotes = comment.Upvotes,
+                UpvotedByMe = true
+            };
         }
 
-        public async Task RemoveUpvoteAsync(long commentId, int userId)
+        public async Task<CommentUpvoteStateDto?> RemoveUpvoteAsync(long commentId, long userId)
         {
-            var upvote = await _context.Set<CommentUpvote>()
-                .FirstOrDefaultAsync(u => u.CommentId == commentId && u.UserId == userId);
+            var comment = await _db.Comments.FirstOrDefaultAsync(c => c.Id == commentId);
+            if (comment == null) return null;
 
-            if (upvote != null)
+            var existing = await _db.CommentUpvotes.FindAsync(commentId, userId);
+            if (existing == null)
             {
-                _context.Set<CommentUpvote>().Remove(upvote);
-
-                var comment = await _context.Comments.FindAsync(commentId);
-                if (comment != null && comment.Upvotes > 0)
-                    comment.Upvotes -= 1;
-
-                await _context.SaveChangesAsync();
+                // Idempotent no-op
+                return new CommentUpvoteStateDto
+                {
+                    Id = comment.Id,
+                    Upvotes = comment.Upvotes,
+                    UpvotedByMe = false
+                };
             }
+
+            _db.CommentUpvotes.Remove(existing);
+            // Guard against negative counts
+            if (comment.Upvotes > 0) comment.Upvotes -= 1;
+
+            await _db.SaveChangesAsync();
+
+            return new CommentUpvoteStateDto
+            {
+                Id = comment.Id,
+                Upvotes = comment.Upvotes,
+                UpvotedByMe = false
+            };
+        }
+
+        public async Task<bool> DeleteOwnedAsync(long commentId, long userId, bool isAdmin = false)
+        {
+            var comment = await _db.Comments.FirstOrDefaultAsync(c => c.Id == commentId);
+            if (comment == null) return false;
+
+            if (!isAdmin && comment.UserId != userId)
+            {
+                // Hide existence: act like 404 per spec choice
+                return false;
+            }
+
+            _db.Comments.Remove(comment);
+            await _db.SaveChangesAsync();
+            return true;
         }
     }
 }

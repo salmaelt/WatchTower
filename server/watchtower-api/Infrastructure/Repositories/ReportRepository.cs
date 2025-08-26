@@ -15,9 +15,9 @@ public class ReportRepository : IReportRepository
         _geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
     }
 
-    public async Task<Report> CreateAsync(int userId, string type, string description, double latitude, double longitude, DateTime? occurredAt = null)
+    public async Task<Report> CreateAsync(long userId, string type, string description, double longitude, double latitude, DateTime? occurredAt = null)
     {
-        var location = _geometryFactory.CreatePoint(new Coordinate(longitude, latitude));
+        Point location = _geometryFactory.CreatePoint(new Coordinate(longitude, latitude));
         
         var report = new Report
         {
@@ -36,31 +36,25 @@ public class ReportRepository : IReportRepository
     }
 
     
-    public async Task<Report?> GetByIdAsync(int id)
+    public async Task<Report?> GetByIdAsync(long id)
     {
-        return await GetByIdInternalAsync((long)id);
+        return await GetByIdInternalAsync(id);
     }
 
-    public async Task<Report> UpdateAsync(int id, string type, string description, string status)
+    public async Task<Report> UpdateAsync(long id, string description)
     {
-        return await UpdateInternalAsync((long)id, type, description, status);
+        return await UpdateInternalAsync(id, description);
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(long id)
     {
-        await DeleteInternalAsync((long)id);
+        await DeleteInternalAsync(id);
     }
 
-    public async Task<Report> UpdateStatusAsync(int id, string status)
+    public async Task<Report> UpdateStatusAsync(long id, string status)
     {
-        return await UpdateStatusInternalAsync((long)id, status);
+        return await UpdateStatusInternalAsync(id, status);
     }
-
-    public async Task<Report> UpdateUpvotesAsync(int id, int upvotes)
-    {
-        return await UpdateUpvotesInternalAsync((long)id, upvotes);
-    }
-
     
     private async Task<Report?> GetByIdInternalAsync(long id)
     {
@@ -71,15 +65,13 @@ public class ReportRepository : IReportRepository
             .FirstOrDefaultAsync(r => r.Id == id);
     }
 
-    private async Task<Report> UpdateInternalAsync(long id, string type, string description, string status)
+    private async Task<Report> UpdateInternalAsync(long id, string description)
     {
         var report = await _context.Reports.FindAsync(id);
         if (report == null)
             throw new InvalidOperationException($"Report with ID {id} not found");
 
-        report.Type = type;
         report.Description = description;
-        report.Status = status;
         report.UpdatedAt = DateTimeOffset.UtcNow;
 
         await _context.SaveChangesAsync();
@@ -109,20 +101,7 @@ public class ReportRepository : IReportRepository
         return report;
     }
 
-    private async Task<Report> UpdateUpvotesInternalAsync(long id, int upvotes)
-    {
-        var report = await _context.Reports.FindAsync(id);
-        if (report == null)
-            throw new InvalidOperationException($"Report with ID {id} not found");
-
-        report.Upvotes = upvotes;
-        report.UpdatedAt = DateTimeOffset.UtcNow;
-
-        await _context.SaveChangesAsync();
-        return report;
-    }
-
-    public async Task<IEnumerable<Report>> GetByUserIdAsync(int userId)
+    public async Task<IEnumerable<Report>> GetByUserIdAsync(long userId)
     {
         return await _context.Reports
             .Include(r => r.User)
@@ -150,23 +129,30 @@ public class ReportRepository : IReportRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Report>> GetReportsInBoundedBoxAsync(
-        double minLatitude, double minLongitude, double maxLatitude, double maxLongitude, 
+     public async Task<IEnumerable<Report>> GetReportsInBoundedBoxAsync(
+        double minLongitude, double minLatitude, double maxLongitude, double maxLatitude,
         string? type = null, string? status = null)
     {
-        // Create bounding box geometry
+        // Normalize just in case (west<=east, south<=north)
+        if (minLongitude > maxLongitude) (minLongitude, maxLongitude) = (maxLongitude, minLongitude);
+        if (minLatitude  > maxLatitude)  (minLatitude,  maxLatitude)  = (maxLatitude,  minLatitude);
+
+        // Build bbox polygon (X=lng, Y=lat) in WGS84
         var envelope = new Envelope(minLongitude, maxLongitude, minLatitude, maxLatitude);
         var boundingBox = _geometryFactory.ToGeometry(envelope);
+        boundingBox.SRID = 4326;
 
         var query = _context.Reports
+            .AsNoTracking()
             .Include(r => r.User)
             .Include(r => r.UpvoteUsers)
-            .Where(r => r.Location.Within(boundingBox));
+            // Include boundary points and keep PostGIS semantics users expect for "bbox"
+            .Where(r => r.Location.Intersects(boundingBox));
 
-        if (!string.IsNullOrEmpty(type))
+        if (!string.IsNullOrWhiteSpace(type))
             query = query.Where(r => r.Type == type);
 
-        if (!string.IsNullOrEmpty(status))
+        if (!string.IsNullOrWhiteSpace(status))
             query = query.Where(r => r.Status == status);
 
         return await query
@@ -199,7 +185,7 @@ public class ReportRepository : IReportRepository
 
 
 
-    public async Task<int> GetTotalCountAsync(string? type = null, string? status = null)
+    public async Task<long> GetTotalCountAsync(string? type = null, string? status = null)
     {
         var query = _context.Reports.AsQueryable();
 
@@ -212,7 +198,7 @@ public class ReportRepository : IReportRepository
         return await query.CountAsync();
     }
 
-    public async Task<int> GetCountByUserAsync(int userId)
+    public async Task<long> GetCountByUserAsync(long userId)
     {
         return await _context.Reports
             .Where(r => r.UserId == userId)
@@ -220,32 +206,46 @@ public class ReportRepository : IReportRepository
     }
 
     // UPVOTE METHODS 
-    public async Task UpvoteAsync(long reportId, int userId)
+    public async Task<Report> UpvoteAsync(long reportId, long userId)
     {
-        
-        var existingUpvote = await _context.ReportUpvotes
+        // Check if the user has already upvoted this post
+        ReportUpvote? existingUpvote = await _context.ReportUpvotes
             .FirstOrDefaultAsync(ru => ru.ReportId == reportId && ru.UserId == userId);
-        
+
         if (existingUpvote == null)
         {
-            _context.ReportUpvotes.Add(new ReportUpvote 
-            { 
-                ReportId = reportId, 
-                UserId = userId 
+            _context.ReportUpvotes.Add(new ReportUpvote
+            {
+                ReportId = reportId,
+                UserId = userId
             });
+            var report = await _context.Reports.FirstAsync(r => r.Id == reportId);
+            report.Upvotes += 1;
             await _context.SaveChangesAsync();
+            return report;
+        }
+        else
+        {
+            return await _context.Reports.FirstAsync(r => r.Id == reportId);
         }
     }
 
-    public async Task RemoveUpvoteAsync(long reportId, int userId)
+    public async Task<Report> RemoveUpvoteAsync(long reportId, long userId)
     {
         var upvote = await _context.ReportUpvotes
             .FirstOrDefaultAsync(ru => ru.ReportId == reportId && ru.UserId == userId);
-        
+
         if (upvote != null)
         {
             _context.ReportUpvotes.Remove(upvote);
+            var report = await _context.Reports.FirstAsync(r => r.Id == reportId);
+            report.Upvotes -= 1;
             await _context.SaveChangesAsync();
+            return report;
+        }
+        else
+        {
+            return await _context.Reports.FirstAsync(r => r.Id == reportId);
         }
     }
 }
