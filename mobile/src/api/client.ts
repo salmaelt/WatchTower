@@ -1,5 +1,11 @@
 // src/api/client.ts
 import axios, { AxiosRequestConfig } from "axios";
+import Constants from "expo-constants";
+
+axios.defaults.baseURL =
+  (Constants.expoConfig?.extra as any)?.API_URL ||
+  process.env.EXPO_PUBLIC_API_URL ||
+  "http://localhost:4000"; 
 
 // NOTE: axios.defaults.baseURL and Authorization are set in AuthContext.
 // We just pass through the AbortSignal that React Query gives us.

@@ -19,8 +19,7 @@ export default function AuthGateScreen() {
 
         <Pressable
           onPress={() => nav.navigate('Login')}
-          style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
-        >
+          style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}>
           <Text style={styles.primaryText}>Sign in</Text>
         </Pressable>
 

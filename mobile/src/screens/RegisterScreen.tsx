@@ -5,6 +5,43 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import DismissKeyboard from "../components/DismissKeyboard";
 import LoadingButton from "../components/LoadingButton";
 
+/*export default function RegisterScreen() {
+  const [username, setU] = useState("");
+  const [email, setE] = useState("");
+  const [password, setP] = useState("");
+  const [confirm, setC] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const { register } = useAuth();
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const redirectTo = route.params?.redirectTo as { tab?: string; screen: string; params?: any } | undefined;
+
+  const handleRegister = async () => {
+    if (!username.trim() || !email.trim() || !password) {
+      Alert.alert("Missing info", "Please fill in all fields.");
+      return;
+    }
+    if (password !== confirm) {
+      Alert.alert("Passwords don’t match", "Please re-enter your password.");
+      return;
+    }
+    try {
+      await register(username.trim(), email.trim(), password);
+      if (redirectTo) {
+        (navigation as any).navigate(redirectTo.tab ?? "MapTab", {
+          screen: redirectTo.screen,
+          params: redirectTo.params,
+        });
+      } else {
+        (navigation as any).navigate("ProfileTab", { screen: "Profile" });
+      }
+    } catch (e: any) {
+      Alert.alert("Registration failed", e?.response?.data || e.message);
+    }
+  };
+*/
+
 export default function RegisterScreen() {
   const [username, setU] = useState("");
   const [email, setE] = useState("");
@@ -40,7 +77,7 @@ export default function RegisterScreen() {
       Alert.alert("Registration failed", e?.response?.data || e.message);
     }
   };
-
+  
   return (
     <DismissKeyboard>
       <View style={s.container}>
