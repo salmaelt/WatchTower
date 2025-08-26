@@ -10,6 +10,7 @@ export default function LoginPage(){
     e.preventDefault();
     //replace this with actual api call later
     localStorage.setItem("token", "demo-token");
+    localStorage.setItem("username", "demo-user"); // After successful login/signup
     navigate("/dashboard");
   }
 

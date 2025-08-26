@@ -8,6 +8,7 @@ import Signup from "./Pages/signup/Signup";
 import UserDashboard from "./Pages/userdashboard/UserProfile";
 import Report from "./Pages/report/Report";
 import ReportThanks from "./Pages/report/ReportThanks";
+import EditReport from "./Pages/report/EditReport";
 
 export const isSignedIn = () => !!localStorage.getItem("token");
 
@@ -31,6 +32,7 @@ export default function App() {
           path="/dashboard"
           element={isSignedIn() ? <UserDashboard /> : <Navigate to="/account" replace />}
         />
+        <Route path="/report/edit/:id" element={<EditReport />} />
         <Route path="*" element={<div style={{ padding: 24 }}>Page not found</div>} />
       </Routes>
     </BrowserRouter>

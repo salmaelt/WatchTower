@@ -263,25 +263,7 @@ export default function Report() {
               </div>
             </form>
 
-            <aside className="recent-card">
-              <h3>Recent reports</h3>
-              <div className="recent-list">
-                {reports.length === 0 && (
-                  <p className="muted">
-                    No reports yet — be the first to report.
-                  </p>
-                )}
-                {reports.map((r) => (
-                  <div className="recent-item" key={r.id}>
-                    <div className="ri-title">{r.description}</div>
-                    <div className="ri-meta">
-                      {new Date(r.time || r.createdAt).toLocaleString()} ·{" "}
-                      {r.locationText || "Pinned on map"}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </aside>
+            
           </section>
 
           <div className="bottom-pad" />

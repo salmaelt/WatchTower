@@ -1,6 +1,8 @@
 import { useNavigate, Link } from "react-router-dom";
 import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
 import "./Auth.css";
+import phoneimage from "../../img/paletteBackground.png"
+
 
 export default function Signup(){
   const navigate = useNavigate();

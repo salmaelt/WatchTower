@@ -51,8 +51,9 @@ export default function Report() {
   const geo = useGeoLocation();
   const isSignedIn = !!localStorage.getItem("token");
   const { id } = useParams();
-
   const report = getReports().find((r) => r.id === Number(id));
+
+  // Prefill form and picked location if report exists
   const [form, setForm] = useState(
     report
       ? {
@@ -64,7 +65,11 @@ export default function Report() {
         }
       : { locationText: "", description: "", time: "" }
   );
-  const [picked, setPicked] = useState(null);
+  const [picked, setPicked] = useState(
+    report && report.lat && report.lng
+      ? { lat: report.lat, lng: report.lng }
+      : null
+  );
   const [me, setMe] = useState(null);
   const [error, setError] = useState("");
 
@@ -100,7 +105,8 @@ export default function Report() {
       return setError("Please add a brief description.");
     if (!form.time) return setError("Please select when it happened.");
 
-    updateReport(Number(id), form);
+    // Save picked location to the report
+    updateReport(Number(id), { ...form, lat: picked.lat, lng: picked.lng });
 
     navigate("/live");
   };

@@ -24,7 +24,7 @@
   top:20px; 
   left:50%; 
   transform:translateX(-50%);
-  font: 900 22px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  font: 900 32px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   color: var(--green);
 }
 

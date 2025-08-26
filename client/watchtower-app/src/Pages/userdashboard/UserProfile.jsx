@@ -1,22 +1,39 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import BottomNavBar from "../../components/BottomNavBar/BottomNavBar"
+import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
+import { getReports, updateReport, deleteReport } from "../../store/reports";
 import "./UserProfile.css";
 
-export default function UserProfile(){
+export default function UserProfile() {
+  const username = localStorage.getItem("username");
   const navigate = useNavigate();
-
-  //storing sign in token
+  const [myReports, setMyReports] = useState([]);
+  const [allReports, setAllReports] = useState([]);
   const [signedIn, setSignedIn] = useState(() => !!localStorage.getItem("token"));
+
+  useEffect(() => {
+    setMyReports(getReports().filter(r => r.user === username));
+    setAllReports(getReports());
+  }, [username]);
 
   const handleSignOut = () => {
     localStorage.removeItem("token");
-    setSignedIn(false); //if not signed in then change to sign out
+    setSignedIn(false);
   };
 
   const handleSignIn = () => {
     navigate("/signin");
   };
+
+  function handleDelete(id) {
+    deleteReport(id);
+    setMyReports(myReports.filter(r => r.id !== id));
+    setAllReports(allReports.filter(r => r.id !== id));
+  }
+
+  function handleEdit(id) {
+    navigate(`/report/edit/${id}`);
+  }
 
   return (
     <div className="phonescreen">
@@ -35,7 +52,19 @@ export default function UserProfile(){
             <h3>My reports</h3>
             {signedIn ? (
               <>
-                <p className="muted">You haven’t submitted any reports yet.</p>
+                {myReports.length === 0 ? (
+                  <p className="muted">You haven’t submitted any reports yet.</p>
+                ) : (
+                  myReports.map(report => (
+                    <div key={report.id} className="userprofile-report-item">
+                      <div><b>Description:</b> {report.description}</div>
+                      <div><b>Location:</b> {report.locationText}</div>
+                      <div><b>Time:</b> {report.time}</div>
+                      <button className="edit-btn" onClick={() => handleEdit(report.id)}>Edit</button>
+                      <button className="delete-btn" onClick={() => handleDelete(report.id)}>Delete</button>
+                    </div>
+                  ))
+                )}
                 <button className="btn-primary" onClick={() => navigate("/report")}>
                   Report now
                   <svg className="btn-arrow" viewBox="0 0 24 24" aria-hidden="true">
@@ -55,6 +84,8 @@ export default function UserProfile(){
               </>
             )}
           </section>
+
+          
 
           <section className="dash-card">
             <h3>Account</h3>
