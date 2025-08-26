@@ -1,87 +1,136 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, Pressable, Alert, StyleSheet } from "react-native";
-import { useAuth } from "../auth/AuthContext";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import DismissKeyboard from "../components/DismissKeyboard";
-import LoadingButton from "../components/LoadingButton";
+import React, { useState } from 'react';
+import { View, Text, TextInput, StyleSheet, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useAuth } from '../auth/AuthContext';
+import { palette } from '../theme';
+
+const GREEN = palette.green ?? '#2f6b57';
+const GREEN_D = palette.greenD ?? '#285a49';
+const INK = palette.ink ?? '#0f172a';
+const BG = (palette as any).bg ?? '#ffffff';
 
 export default function LoginScreen() {
-  const [usernameOrEmail, setU] = useState("");
-  const [password, setP] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  const { login } = useAuth();
-  const navigation = useNavigation<any>();
+  const nav = useNavigation<any>();
   const route = useRoute<any>();
-  const redirectTo = route.params?.redirectTo as { tab?: string; screen: string; params?: any } | undefined;
+  const { signIn } = useAuth();
 
-  const handleLogin = async () => {
-    try {
-      await login(usernameOrEmail.trim(), password);
-      if (redirectTo) {
-        (navigation as any).navigate(redirectTo.tab ?? "MapTab", {
-          screen: redirectTo.screen,
-          params: redirectTo.params,
-        });
-      } else {
-        (navigation as any).navigate("ProfileTab", { screen: "Profile" });
-      }
-    } catch (e: any) {
-      Alert.alert("Login failed", e?.response?.data || e.message);
-      // LoadingButton will stop spinner automatically via onLoadingChange(false)
-      // Keep it here for clarity; no rethrow needed.
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const onSubmit = async () => {
+    // fake auth; replace with API
+    await signIn({ email, password });
+    // if redirected, follow it
+    const redirect = route.params?.redirectTo;
+    if (redirect?.tab) {
+      nav.navigate(redirect.tab as any, {
+        screen: redirect.screen,
+        params: redirect.params,
+      });
+    } else {
+      nav.navigate('ProfileTab');
     }
   };
 
   return (
-    <DismissKeyboard>
-      <View style={s.container}>
-        <Text style={s.title}>Welcome back</Text>
+    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <View style={styles.card}>
+        <Text style={styles.title}>Sign in</Text>
+        <Text style={styles.sub}>Welcome back — please enter your details.</Text>
 
-        <TextInput
-          placeholder="Username or email"
-          value={usernameOrEmail}
-          onChangeText={setU}
-          autoCapitalize="none"
-          autoCorrect={false}
-          editable={!busy}
-          style={[s.input, busy && s.inputDisabled]}
-          placeholderTextColor="#666"
-        />
-        <TextInput
-          placeholder="Password"
-          value={password}
-          onChangeText={setP}
-          secureTextEntry
-          editable={!busy}
-          style={[s.input, busy && s.inputDisabled]}
-          placeholderTextColor="#666"
-        />
+        <View style={styles.field}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+            placeholder="you@example.com"
+            placeholderTextColor="#9ca3af"
+          />
+        </View>
 
-        <LoadingButton
-          title="Log in"
-          onPressAsync={handleLogin}
-          onLoadingChange={setBusy}  // disables inputs while loading
-        />
+        <View style={styles.field}>
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={styles.input}
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            placeholder="••••••••"
+            placeholderTextColor="#9ca3af"
+          />
+        </View>
 
-        <View style={{ height: 12 }} />
-        <Text style={s.muted}>Don’t have an account?</Text>
-        <Pressable disabled={busy} onPress={() => (navigation as any).navigate("Register", { redirectTo })}>
-          <Text style={[s.link, busy && { opacity: 0.5 }]}>Create one here</Text>
+        <Pressable
+          onPress={onSubmit}
+          style={({ pressed }) => [
+            styles.primaryBtn,
+            pressed && { transform: [{ translateY: 1 }] },
+          ]}
+        >
+          <Text style={styles.primaryText}>Sign in</Text>
         </Pressable>
       </View>
-    </DismissKeyboard>
+    </KeyboardAvoidingView>
   );
 }
 
-const s = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#fff" },
-  title: { fontSize: 20, fontWeight: "700", marginBottom: 16 },
-  input: {
-    borderWidth: 1, borderColor: "#ddd", backgroundColor: "#fafafa",
-    borderRadius: 10, paddingHorizontal: 10, paddingVertical: 10, marginBottom: 10,
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: BG,
+    padding: 16,
   },
-  inputDisabled: { opacity: 0.6 },
-  muted: { textAlign: "center", opacity: 0.7, marginTop: 4 },
-  link: { textAlign: "center", fontWeight: "600", marginTop: 6 },
+  card: {
+    marginTop: 24,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: '#1f2937',
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: INK,
+    marginBottom: 6,
+  },
+  sub: { color: '#6b7280', marginBottom: 12 },
+  field: { marginBottom: 10 },
+  label: { fontWeight: '800', color: INK, marginBottom: 6 },
+  input: {
+    height: 44,
+    borderWidth: 2,
+    borderColor: '#1f2937',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    backgroundColor: '#fff',
+    color: INK,
+  },
+  primaryBtn: {
+    marginTop: 12,
+    backgroundColor: GREEN,     // ← green button
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 5,
+  },
+  primaryText: {
+    color: '#fff',
+    fontWeight: '800',
+    letterSpacing: 0.3,
+    fontSize: 16,
+  },
 });

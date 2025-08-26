@@ -1,4 +1,3 @@
-// App.tsx
 import React from 'react';
 import { Pressable, Alert } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -71,7 +70,6 @@ const GREEN_D = palette.greenD ?? '#285a49';
 const INK = palette.ink ?? '#0f172a';
 const BG = (palette as any).bg ?? '#ffffff';
 
-// React Navigation theme (screen background, etc.)
 const navTheme = {
   ...DefaultTheme,
   colors: {
@@ -84,11 +82,14 @@ const navTheme = {
   },
 };
 
-// Shared header styling for every stack screen
 const stackScreenOptions = {
   headerStyle: { backgroundColor: GREEN },
   headerTintColor: '#fff',
-  headerTitleStyle: { fontWeight: '900' as const },
+  headerTitle: 'WATCHTOWER',
+  headerTitleStyle: {
+    fontWeight: '900' as const,
+    letterSpacing: 1,
+  },
 };
 
 // ---------- Nested stacks ----------
@@ -101,7 +102,6 @@ function MapStack() {
         name="MapHome"
         component={MapScreen}
         options={({ navigation }) => ({
-          title: 'Map',
           headerRight: () => (
             <Pressable
               hitSlop={8}
@@ -131,7 +131,6 @@ function MapStack() {
                 }
               }}
             >
-              {/* white icon to contrast the green header */}
               <Ionicons name="add-circle-outline" size={24} color="#fff" />
             </Pressable>
           ),
@@ -140,12 +139,12 @@ function MapStack() {
       <MapStackNav.Screen
         name="CreateReport"
         component={CreateReportScreen}
-        options={{ title: 'Create Report' }}
+        options={{}}
       />
       <MapStackNav.Screen
         name="ReportDetail"
         component={ReportDetailScreen}
-        options={{ title: 'Report' }}
+        options={{}}
       />
     </MapStackNav.Navigator>
   );
@@ -154,43 +153,31 @@ function MapStack() {
 function ReportsStack() {
   return (
     <ReportsStackNav.Navigator screenOptions={stackScreenOptions}>
-      <ReportsStackNav.Screen
-        name="ReportsHome"
-        component={ReportsListScreen}
-        options={{ title: 'Reports' }}
-      />
-      <ReportsStackNav.Screen
-        name="ReportDetail"
-        component={ReportDetailScreen}
-        options={{ title: 'Report' }}
-      />
+      <ReportsStackNav.Screen name="ReportsHome" component={ReportsListScreen} />
+      <ReportsStackNav.Screen name="ReportDetail" component={ReportDetailScreen} />
     </ReportsStackNav.Navigator>
   );
 }
 
 function ProfileStack() {
   const { token, isReady } = useAuth();
-  if (!isReady) return null; // simple splash while loading token
+  if (!isReady) return null;
 
   return (
     <ProfileStackNav.Navigator screenOptions={stackScreenOptions}>
       {token ? (
-        <ProfileStackNav.Screen
-          name="Profile"
-          component={ProfileScreen}
-          options={{ title: 'Profile' }}
-        />
+        <ProfileStackNav.Screen name="Profile" component={ProfileScreen} />
       ) : (
         <>
           <ProfileStackNav.Screen
             name="Login"
             component={LoginScreen}
-            options={{ title: 'Sign in' }}
+            options={{ headerTitle: 'WATCHTOWER' }}
           />
           <ProfileStackNav.Screen
             name="Register"
             component={RegisterScreen}
-            options={{ title: 'Create account' }}
+            options={{ headerTitle: 'WATCHTOWER' }}
           />
         </>
       )}
@@ -210,13 +197,12 @@ export default function App() {
             <Tab.Navigator
               initialRouteName="MapTab"
               screenOptions={({ route }) => ({
-                headerShown: false, // stack headers handle titles
+                headerShown: false,
                 tabBarHideOnKeyboard: true,
                 tabBarActiveTintColor: '#fff',
-                tabBarInactiveTintColor: 'rgba(234,245,239,0.9)', // light mint text
+                tabBarInactiveTintColor: 'rgba(234,245,239,0.9)',
                 tabBarLabelStyle: { fontSize: 12, fontWeight: '800' },
                 tabBarItemStyle: { paddingVertical: 4, borderRadius: 14 },
-                // Rounded "pill" dock — matches web bottom nav feel
                 tabBarStyle: {
                   position: 'absolute',
                   left: 16,
@@ -228,7 +214,6 @@ export default function App() {
                   borderTopWidth: 0,
                   paddingBottom: 6,
                   paddingTop: 6,
-                  // shadow/elevation
                   elevation: 10,
                   shadowColor: '#000',
                   shadowOpacity: 0.25,
@@ -252,21 +237,9 @@ export default function App() {
                 },
               })}
             >
-              <Tab.Screen
-                name="MapTab"
-                component={MapStack}
-                options={{ title: 'Home' }}
-              />
-              <Tab.Screen
-                name="ReportsTab"
-                component={ReportsStack}
-                options={{ title: 'Live' }}
-              />
-              <Tab.Screen
-                name="ProfileTab"
-                component={ProfileStack}
-                options={{ title: 'User' }}
-              />
+              <Tab.Screen name="MapTab" component={MapStack} options={{ title: 'Home' }} />
+              <Tab.Screen name="ReportsTab" component={ReportsStack} options={{ title: 'Live' }} />
+              <Tab.Screen name="ProfileTab" component={ProfileStack} options={{ title: 'User' }} />
             </Tab.Navigator>
           </NavigationContainer>
         </AuthProvider>
