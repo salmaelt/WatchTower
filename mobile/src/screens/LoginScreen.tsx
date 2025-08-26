@@ -70,6 +70,16 @@ export default function LoginScreen() {
             pressed && { transform: [{ translateY: 1 }] },
           ]}
         >
+
+        <Pressable
+          onPress={() => nav.navigate('Register')}
+          style={({ pressed }) => [
+            { marginTop: 10, borderWidth: 2, borderColor: GREEN, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+            pressed && { transform: [{ translateY: 1 }] },
+          ]}
+        >
+          <Text style={{ color: GREEN, fontWeight: '800', letterSpacing: 0.3 }}>Create account</Text>
+        </Pressable>
           <Text style={styles.primaryText}>Sign in</Text>
         </Pressable>
       </View>
@@ -116,11 +126,11 @@ const styles = StyleSheet.create({
   },
   primaryBtn: {
     marginTop: 12,
-    backgroundColor: GREEN,     // ← green button
+    backgroundColor: GREEN,     
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 8,
     shadowColor: '#000',
     shadowOpacity: 0.18,
     shadowRadius: 6,

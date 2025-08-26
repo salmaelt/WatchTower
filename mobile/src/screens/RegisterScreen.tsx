@@ -96,6 +96,8 @@ export default function RegisterScreen() {
         <Pressable disabled={busy} onPress={() => (navigation as any).navigate("Login", { redirectTo })}>
           <Text style={[s.link, busy && { opacity: 0.5 }]}>Log in here</Text>
         </Pressable>
+
+        
       </View>
     </DismissKeyboard>
   );

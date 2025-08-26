@@ -170,6 +170,11 @@ function ProfileStack() {
       ) : (
         <>
           <ProfileStackNav.Screen
+            name="AuthGate"
+            component={require('./src/screens/AuthGateScreen').default}
+            options={{ headerTitle: 'WATCHTOWER' }}
+          />
+          <ProfileStackNav.Screen
             name="Login"
             component={LoginScreen}
             options={{ headerTitle: 'WATCHTOWER' }}
