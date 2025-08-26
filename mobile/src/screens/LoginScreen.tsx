@@ -74,13 +74,14 @@ export default function LoginScreen() {
           />
         </View>
 
-        <LoadingButton
-          title="Sign in"
-          onPressAsync={onSubmit}
-          onLoadingChange={setBusy}
-          bg={palette.green}
-          textColor="#fff"
-        />
+      <LoadingButton
+        title="Sign in"
+        onPressAsync={onSubmit}
+        onLoadingChange={setBusy}
+        bg={palette.green}
+        textColor="#fff"
+        style={{ marginTop: 12, width: '100%' }}   // optional
+      />
 
         <Pressable
           onPress={() => nav.navigate('Register')}
