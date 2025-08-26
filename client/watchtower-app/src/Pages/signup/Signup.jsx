@@ -17,6 +17,7 @@ export default function Signup(){
 
   return (
     <div className="phonescreen">
+      <BottomNavBar isSignedIn={isSignedIn} />
       <div className="brand-title">WatchTower</div>
 
       <div className="auth-wrap">

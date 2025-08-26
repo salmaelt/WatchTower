@@ -1,0 +1,112 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f4f6f8;
+  min-height: 100vh;
+}
+
+.app-container {
+  width: 100vw;
+  min-height: 100vh;
+  max-width: none;
+  box-sizing: border-box;
+  background: #f4f6f8;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Remove any max-width or fixed width from main containers */
+.dash-wrap, .phonescreen, .main-content, .report-container, .userprofile-container {
+  width: 100vw;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  padding: 0 32px;
+  box-sizing: border-box;
+}
+
+.dash-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin-top: 64px;
+  
+  
+  padding-bottom: 16px;
+}
+
+.dash-card, .recent-card, .userprofile-report-item, .report-card, .live-report-item {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 24px;
+  min-width: 0;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+/* Map styling for desktop */
+.leaflet-container {
+  width: 100% !important;
+  height: 500px !important;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  margin: 24px 0;
+}
+
+/* Navbar at top, full width */
+.topnav-container {
+  width: 100%;
+  background: #2f6b57;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 64px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topnav-brand {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.topnav-links {
+  display: flex;
+  gap: 24px;
+}
+
+.topnav-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+.topnav-btn:hover {
+  background: #245544;
+}
+
+/* Remove mobile-only styles */
+@media screen and (max-width: 800px) {
+  .app-container, .dash-wrap, .phonescreen, .main-content, .report-container, .userprofile-container {
+    width: 100vw;
+    padding: 0 32px;
+  }
+  .dash-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 32px;
+  }
+  .leaflet-container {
+    height: 500px !important;
+  }
+}

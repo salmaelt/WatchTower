@@ -22,6 +22,7 @@ export default function LiveReports() {
 
   return (
     <div className="phonescreen">
+      
       <h2>WatchTower</h2>
 
       <div className="report-wrap">

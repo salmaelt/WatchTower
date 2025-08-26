@@ -14,7 +14,7 @@ export default function AccountGate() {
       background: `url(${phoneimage}) center/cover no-repeat`,
         minHeight: "100vh"
     }}>
-      
+      <BottomNavBar isSignedIn={isSignedIn} />
       <div style={{ padding:"24px", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:16  }}>
         <h2>Account</h2>
         <p style={{ color:"white" , fontSize:"30px"}}>You’re not signed in yet.</p>
@@ -24,7 +24,7 @@ export default function AccountGate() {
         </button>
         <p style={{ marginTop:8 , color:"white"}}>No account? <Link to="/signup">Create one →</Link></p>
       </div>
-      <BottomNavBar isSignedIn={isSignedIn} />
+      
     </div>
   );
 }
