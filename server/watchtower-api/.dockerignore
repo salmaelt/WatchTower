@@ -1,0 +1,47 @@
+# build artifacts
+**/bin
+**/obj
+**/out
+**/artifacts
+**/publish
+
+# git & vcs
+.git
+.gitignore
+
+# editors/IDE
+.vscode
+.idea
+.vs
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# logs/temp
+*.log
+logs
+*.tmp
+~$*
+*.swp
+*.swo
+
+# test/coverage
+TestResults
+coverage
+*.coverage
+*.coveragexml
+*.trx
+
+# local secrets (don’t ship dev settings)
+*.env
+.env
+.env.*
+appsettings.Local.json
+*.appsettings.Development.json
+appsettings.*.Local.json

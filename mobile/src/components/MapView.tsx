@@ -4,8 +4,9 @@ import MapView, {
   Region,
   PROVIDER_GOOGLE,
   LongPressEvent,
+  Callout,
 } from "react-native-maps";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, Text, Pressable } from "react-native";
 
 export type MapMarker = {
   id: number;
@@ -16,20 +17,12 @@ export type MapMarker = {
 };
 
 type Props = {
-  /** Fully controlled region (parent owns state) */
-  region: Region;
-  /** Fires once the user stops panning/zooming */
+  region: Region; // parent controls this
   onRegionChangeComplete: (r: Region) => void;
-
-  /** Markers to render. Optional so this component can be reused in “create report”. */
-  markers?: MapMarker[];
-
+  markers: MapMarker[];
   onLongPress?: (e: LongPressEvent) => void;
-  onMarkerPress?: (id: number) => void;
+  onMarkerPress?: (id: number) => void; // called when user taps callout / button
   loading?: boolean;
-
-  /** Optional hard bounds to keep the camera inside (defaults to Greater London). */
-  clampToLondon?: boolean;
 };
 
 // Approx Greater London bounds
@@ -37,18 +30,16 @@ const LONDON_BOUNDS = {
   minLat: 51.261, // south
   maxLat: 51.686, // north
   minLng: -0.563, // west
-  maxLng: 0.280,  // east
+  maxLng: 0.280, // east
 };
 
 function clampRegion(r: Region, b = LONDON_BOUNDS): Region {
-  // Prevent zooming out beyond the bbox
   const maxLatDelta = b.maxLat - b.minLat;
   const maxLngDelta = b.maxLng - b.minLng;
 
   let latitudeDelta = Math.min(r.latitudeDelta, maxLatDelta);
   let longitudeDelta = Math.min(r.longitudeDelta, maxLngDelta);
 
-  // Keep the visible corners inside bounds
   const minLatCenter = b.minLat + latitudeDelta / 2;
   const maxLatCenter = b.maxLat - latitudeDelta / 2;
   const minLngCenter = b.minLng + longitudeDelta / 2;
@@ -63,25 +54,22 @@ function clampRegion(r: Region, b = LONDON_BOUNDS): Region {
 export default function WTMap({
   region,
   onRegionChangeComplete,
-  markers = [],
+  markers,
   onLongPress,
   onMarkerPress,
   loading,
-  clampToLondon = true,
 }: Props) {
-  const clamped = clampToLondon ? clampRegion(region) : region;
+  const clamped = clampRegion(region);
 
   return (
     <View style={{ flex: 1 }}>
       <MapView
         style={{ flex: 1 }}
         provider={PROVIDER_GOOGLE}
-        region={clamped}                 // 🔒 controlled map (no initialRegion)
+        region={clamped}
         minZoomLevel={9}
         maxZoomLevel={18}
-        onRegionChangeComplete={(r) =>
-          onRegionChangeComplete(clampToLondon ? clampRegion(r) : r)
-        }
+        onRegionChangeComplete={(r) => onRegionChangeComplete(clampRegion(r))}
         onLongPress={onLongPress}
       >
         {markers.map((m) => (
@@ -91,8 +79,31 @@ export default function WTMap({
             title={m.title}
             description={m.description}
             pinColor={m.color}
-            onPress={() => onMarkerPress?.(m.id)}
-          />
+          >
+            {/* First tap shows this popup */}
+            <Callout onPress={() => onMarkerPress?.(m.id)}>
+              <View style={{ maxWidth: 240 }}>
+                <Text style={{ fontWeight: "700", marginBottom: 4 }}>{m.title}</Text>
+                <Text numberOfLines={3} style={{ opacity: 0.8 }}>
+                  {m.description}
+                </Text>
+
+                <Pressable
+                  onPress={() => onMarkerPress?.(m.id)}
+                  style={({ pressed }) => ({
+                    marginTop: 8,
+                    paddingVertical: 6,
+                    paddingHorizontal: 10,
+                    borderRadius: 8,
+                    backgroundColor: pressed ? "#e7eefc" : "#2a72ff",
+                    alignSelf: "flex-start",
+                  })}
+                >
+                  <Text style={{ color: "white", fontWeight: "600" }}>View details</Text>
+                </Pressable>
+              </View>
+            </Callout>
+          </Marker>
         ))}
       </MapView>
 
