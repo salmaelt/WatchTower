@@ -5,6 +5,8 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { useAuth } from "../auth/AuthContext";
 import LoadingButton from "../components/LoadingButton";
+import { CommonActions } from '@react-navigation/native';
+
 
 // Optional: fallback to JWT claims if user object missing
 function parseJwtClaims(token: string | null): any {
@@ -43,12 +45,16 @@ export default function ProfileScreen() {
         style: "destructive",
         onPress: async () => {
           await logout();
-          (navigation as any).navigate("ProfileTab", { screen: "Login" });
-        },
-      },
-    ]);
-  };
-
+          navigation.dispatch(
+            CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'ProfileTab', params: { screen: 'AuthGate' } }],
+          })
+        );
+        }
+      }
+  }
+        //"ProfileTab", { screen: "Login" });
   const runDelete = async () => {
     try {
       setDeleting(true);

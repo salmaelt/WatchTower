@@ -5,6 +5,8 @@ import { useAuth } from '../auth/AuthContext';
 import DismissKeyboard from '../components/DismissKeyboard';
 import LoadingButton from '../components/LoadingButton';
 import { palette } from '../theme';
+import { CommonActions } from '@react-navigation/native';
+
 
 const GREEN = palette.green ?? '#2f6b57';
 
@@ -57,7 +59,15 @@ export default function LoginScreen() {
           params: redirectTo.params,
         });
       } else {
-        (navigation as any).navigate("ProfileTab", { screen: "Profile" });
+        //(navigation as any).navigate("ProfileTab", { screen: "Profile" });
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [
+              { name: 'ProfileTab', params:{ screen: 'Profile'}}
+            ]
+          })
+        )
       }
     } catch (e: any) {
       Alert.alert("Login failed", e?.response?.data || e.message);

@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthContext";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import DismissKeyboard from "../components/DismissKeyboard";
 import LoadingButton from "../components/LoadingButton";
+import { CommonActions } from '@react-navigation/native';
 
 /*export default function RegisterScreen() {
   const [username, setU] = useState("");
@@ -65,19 +66,28 @@ export default function RegisterScreen() {
     }
     try {
       await register(username.trim(), email.trim(), password);
-      if (redirectTo) {
+      
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [
+            {name: 'ProfileTab', params: {screen: 'Profile'}}
+          ]
+        })
+      )
+      /*if (redirectTo) {
         (navigation as any).navigate(redirectTo.tab ?? "MapTab", {
           screen: redirectTo.screen,
           params: redirectTo.params,
         });
       } else {
         (navigation as any).navigate("ProfileTab", { screen: "Profile" });
-      }
+      }*/
     } catch (e: any) {
       Alert.alert("Registration failed", e?.response?.data || e.message);
     }
   };
-  
+
   return (
     <DismissKeyboard>
       <View style={s.container}>

@@ -36,6 +36,7 @@ export type ReportsStackParamList = {
 };
 
 export type ProfileStackParamList = {
+  AuthGate: undefined; //ADDED THIS
   Login:
     | {
         redirectTo?: {
@@ -164,7 +165,10 @@ function ProfileStack() {
   if (!isReady) return null;
 
   return (
-    <ProfileStackNav.Navigator screenOptions={stackScreenOptions}>
+    <ProfileStackNav.Navigator 
+      screenOptions={stackScreenOptions}
+      initialRouteName={token ? 'Profile': 'AuthGate'} //ADDED
+    >
       {token ? (
         <ProfileStackNav.Screen name="Profile" component={ProfileScreen} />
       ) : (

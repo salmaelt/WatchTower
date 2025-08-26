@@ -1,8 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { View, StyleSheet, Pressable, Text, Platform, Alert } from 'react-native';
 import MapView, { Region } from 'react-native-maps';
+//import WTMap from "../components/MapView";
 import { useNavigation } from '@react-navigation/native';
+//import { listReportsByBbox } from "../api/reports";
 import * as Location from 'expo-location';
+//import { useQuery, keepPreviousData } from "@tanstack/react-query"; 
 import { palette } from '../theme';
 
 const GREEN = palette.green ?? '#2f6b57';

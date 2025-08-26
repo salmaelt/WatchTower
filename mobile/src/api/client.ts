@@ -1,14 +1,21 @@
-// src/api/client.ts
 import axios, { AxiosRequestConfig } from "axios";
-import Constants from "expo-constants";
+//import Constants from "expo-constants";
+
+//COMMENTED OUT TO SEE WHY BUG FROM TOM
+/*const extra =
+  (Constants.expoConfig?.extra as any) ||
+  (Constants as any).manifest2?.extra ||
+  (Constants as any).manifest?.extra ||
+  {};
 
 axios.defaults.baseURL =
+  (Constants.expoConfig?.extra as any)?.API_BASE_URL ||
+  "http://192.168.1.209:4000"; */
+
+/*axios.defaults.baseURL =
   (Constants.expoConfig?.extra as any)?.API_URL ||
   process.env.EXPO_PUBLIC_API_URL ||
-  "http://localhost:4000"; 
-
-// NOTE: axios.defaults.baseURL and Authorization are set in AuthContext.
-// We just pass through the AbortSignal that React Query gives us.
+  "http://localhost:4000"; */
 
 export async function apiGet<T>(url: string, cfg?: AxiosRequestConfig & { signal?: AbortSignal }) {
   const { data } = await axios.get<T>(url, { signal: cfg?.signal, ...cfg });

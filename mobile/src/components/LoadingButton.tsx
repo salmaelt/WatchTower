@@ -89,7 +89,7 @@ const s = StyleSheet.create({
   fullWidth: { alignSelf: "stretch" },
 
   // Variants
-  btnPrimary: { pallette.green },
+  btnPrimary: { backgroundColor: "green" },
   btnPrimaryDisabled: { backgroundColor: "#aac3ff" },
 
   btnDanger: { backgroundColor: "#e15656" },
