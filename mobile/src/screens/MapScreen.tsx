@@ -1,4 +1,3 @@
-// src/screens/MapScreen.tsx
 import React, { useRef, useState } from 'react';
 import { View, StyleSheet, Pressable, Text, Platform, Alert } from 'react-native';
 import MapView, { Region } from 'react-native-maps';
@@ -44,12 +43,11 @@ export default function MapScreen() {
   const nav = useNavigation<any>();
   const mapRef = useRef<MapView | null>(null);
   const [region, setRegion] = useState<Region>(INITIAL_REGION);
-  const [bounded, setBounded] = useState(true); // lock to London by default
+  const [bounded, setBounded] = useState(true); 
 
   const onRegionChangeComplete = (r: Region) => {
     if (!bounded) { setRegion(r); return; }
     const clamped = clampRegion(r);
-    // avoid feedback loop
     if (Math.abs(clamped.latitude - r.latitude) > 1e-6 ||
         Math.abs(clamped.longitude - r.longitude) > 1e-6) {
       setRegion(clamped);

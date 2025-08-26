@@ -89,6 +89,11 @@ export default function RegisterScreen() {
           title="Create account"
           onPressAsync={handleRegister}
           onLoadingChange={setBusy}
+          color="#2f6b57"                 
+          buttonColor="#2f6b57"           
+          style={{ backgroundColor: '#2f6b57' }}    
+          containerStyle={{ backgroundColor: '#2f6b57' }}
+          textStyle={{ color: '#fff' }}    
         />
 
         <View style={{ height: 12 }} />

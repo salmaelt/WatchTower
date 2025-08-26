@@ -92,7 +92,7 @@ const stackScreenOptions = {
   },
 };
 
-// ---------- Nested stacks ----------
+// ---------- Map stacks ----------
 function MapStack() {
   const { token } = useAuth();
 

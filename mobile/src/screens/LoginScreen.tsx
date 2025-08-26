@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+} from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../auth/AuthContext';
+import LoadingButton from '../components/LoadingButton';  
 import { palette } from '../theme';
 
 const GREEN = palette.green ?? '#2f6b57';
-const GREEN_D = palette.greenD ?? '#285a49';
 const INK = palette.ink ?? '#0f172a';
 const BG = (palette as any).bg ?? '#ffffff';
 
@@ -16,14 +24,14 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
 
+  //add authentication
   const onSubmit = async () => {
-    // fake auth; replace with API
-    await signIn({ email, password });
-    // if redirected, follow it
+    await signIn({ email, password }); 
     const redirect = route.params?.redirectTo;
     if (redirect?.tab) {
-      nav.navigate(redirect.tab as any, {
+      nav.navigate(redirect.tab, {
         screen: redirect.screen,
         params: redirect.params,
       });
@@ -33,7 +41,10 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={styles.screen}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <View style={styles.card}>
         <Text style={styles.title}>Sign in</Text>
         <Text style={styles.sub}>Welcome back — please enter your details.</Text>
@@ -63,24 +74,22 @@ export default function LoginScreen() {
           />
         </View>
 
-        <Pressable
-          onPress={onSubmit}
-          style={({ pressed }) => [
-            styles.primaryBtn,
-            pressed && { transform: [{ translateY: 1 }] },
-          ]}
-        >
+        <LoadingButton
+          title="Sign in"
+          onPressAsync={onSubmit}
+          onLoadingChange={setBusy}
+          bg={palette.green}
+          textColor="#fff"
+        />
 
         <Pressable
           onPress={() => nav.navigate('Register')}
           style={({ pressed }) => [
-            { marginTop: 10, borderWidth: 2, borderColor: GREEN, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+            styles.ghostBtn,
             pressed && { transform: [{ translateY: 1 }] },
           ]}
         >
-          <Text style={{ color: GREEN, fontWeight: '800', letterSpacing: 0.3 }}>Create account</Text>
-        </Pressable>
-          <Text style={styles.primaryText}>Sign in</Text>
+          <Text style={styles.ghostText}>Create account</Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -124,21 +133,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     color: INK,
   },
-  primaryBtn: {
-    marginTop: 12,
-    backgroundColor: GREEN,     
+  ghostBtn: {
+    marginTop: 10,
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: GREEN,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
+    paddingVertical: 12,
   },
-  primaryText: {
-    color: '#fff',
+  ghostText: {
+    color: GREEN,
     fontWeight: '800',
     letterSpacing: 0.3,
     fontSize: 16,
