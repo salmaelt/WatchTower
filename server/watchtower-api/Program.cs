@@ -106,13 +106,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         });
 builder.Services.AddAuthorization();
 
-// Cors Setup for React with Vite frontend.
+// Cors Setup for React frontend (default policy)
 builder.Services.AddCors(o =>
 {
     o.AddDefaultPolicy(p =>
-        p.WithOrigins("http://localhost:5173")    // Vite default
-         .AllowAnyHeader()
-         .AllowAnyMethod());
+        p.WithOrigins(
+            "http://localhost:3000",
+            "https://localhost:3000",
+            "http://127.0.0.1:3000",
+            "https://127.0.0.1:3000",
+            "http://localhost:5173",
+            "https://localhost:5173",
+            "http://127.0.0.1:5173",
+            "https://127.0.0.1:5173"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials()   // keep this if you're using cookies or fetch(..., { credentials: 'include' })
+    );
 });
 
 // Dependency Injections

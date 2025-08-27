@@ -1,12 +1,31 @@
 // mobile/app.config.ts
-import { ExpoConfig } from "expo/config";
+// app.config.ts
+import type { ExpoConfig } from 'expo/config';
 
-export default (): ExpoConfig => ({
-  name: "WatchTower Mobile",
-  slug: "watchtower-mobile",
-  scheme: "watchtower",
+export default ({ config }: { config: ExpoConfig }) => ({
+  ...config,
+  name: 'WatchTower Mobile',
+  slug: 'watchtower-mobile',
+  scheme: 'watchtower',
+  owner: 'tomcorley', // ← add this
   extra: {
-    API_BASE_URL: "http://192.168.1.50:5051", // Local setup for dev at home
-    // If testing on a real phone on same Wi‑Fi, use your PC’s LAN IP: "http://192.168.x.x:5000"
+    ...(config.extra ?? {}),
+    API_BASE_URL: 'https://watchtower-api-backend.onrender.com/',
+    eas: {
+      projectId: '965e2ae0-49a2-426f-934d-0be91c6cc94b',
+    },
+  },
+  updates: {
+    url: 'https://u.expo.dev/965e2ae0-49a2-426f-934d-0be91c6cc94b',
+  },
+  ios: {
+    ...(config.ios ?? {}),
+    bundleIdentifier: 'com.yourco.watchtower',
+    buildNumber: '1',
+  },
+  android: {
+    ...(config.android ?? {}),
+    package: 'com.yourco.watchtower',
+    versionCode: 1,
   },
 });

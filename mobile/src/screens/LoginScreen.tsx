@@ -16,8 +16,16 @@ export default function LoginScreen() {
   const redirectTo = route.params?.redirectTo as { tab?: string; screen: string; params?: any } | undefined;
 
   const handleLogin = async () => {
+    const u = usernameOrEmail.trim();
+
+    if (!u || !password) {
+      Alert.alert("Missing details", "Please enter your username/email and password.");
+      return;
+    }
+
     try {
-      await login(usernameOrEmail.trim(), password);
+      await login(u, password);
+
       if (redirectTo) {
         (navigation as any).navigate(redirectTo.tab ?? "MapTab", {
           screen: redirectTo.screen,
@@ -27,9 +35,27 @@ export default function LoginScreen() {
         (navigation as any).navigate("ProfileTab", { screen: "Profile" });
       }
     } catch (e: any) {
-      Alert.alert("Login failed", e?.response?.data || e.message);
-      // LoadingButton will stop spinner automatically via onLoadingChange(false)
-      // Keep it here for clarity; no rethrow needed.
+      // Axios-style error object handling with ProblemDetails support
+      const status = e?.response?.status as number | undefined;
+      const data = e?.response?.data;
+      const serverTitle = data?.title;
+      const serverDetail = data?.detail;
+      const fallbackMsg = e?.message || "Something went wrong.";
+
+      if (status === 401) {
+        // api_contracts: 401 invalid credentials
+        Alert.alert("Invalid credentials", "Please check your username/email and password and try again.");
+      } else if (status === 400) {
+        // api_contracts: 400 validation
+        Alert.alert("Validation error", serverTitle || serverDetail || fallbackMsg);
+      } else if (status && status >= 500) {
+        // api_contracts: server errors
+        Alert.alert("Server error", "Please try again in a moment.");
+      } else {
+        // Other cases (network errors, unexpected)
+        Alert.alert("Login failed", serverTitle || serverDetail || fallbackMsg);
+      }
+      // LoadingButton spinner is stopped via onLoadingChange(false)
     }
   };
 
@@ -47,6 +73,7 @@ export default function LoginScreen() {
           editable={!busy}
           style={[s.input, busy && s.inputDisabled]}
           placeholderTextColor="#666"
+          returnKeyType="next"
         />
         <TextInput
           placeholder="Password"
@@ -56,6 +83,8 @@ export default function LoginScreen() {
           editable={!busy}
           style={[s.input, busy && s.inputDisabled]}
           placeholderTextColor="#666"
+          returnKeyType="done"
+          onSubmitEditing={() => !busy && handleLogin()}
         />
 
         <LoadingButton

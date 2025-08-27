@@ -102,10 +102,24 @@ export default function ProfileScreen() {
         </View>
         <View style={s.divider} />
 
-        <Pressable onPress={onLogout} style={({ pressed }) => [s.logoutBtn, pressed && { opacity: 0.85 }]}>
-          <Ionicons name="log-out-outline" size={20} color="#fff" />
-          <Text style={s.logoutText}>Log out</Text>
-        </Pressable>
+        <LoadingButton
+          title="Log out"
+          variant="primary"
+          onPressAsync={async () => {
+            Alert.alert("Log out", "Are you sure you want to log out?", [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Log out",
+                style: "default",
+                onPress: async () => {
+                  await logout();
+                  (navigation as any).navigate("ProfileTab", { screen: "Login" });
+                },
+              },
+            ]);
+          }}
+          fullWidth
+        />
       </View>
 
       {/* Danger zone */}
