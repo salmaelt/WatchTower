@@ -1,8 +1,7 @@
-
 import { useNavigate, Link } from "react-router-dom";
 import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
 import "./Auth.css";
-import phoneimage from "../../img/paletteBackground.png";
+import phoneimage from "../../img/paletteBackground.png"
 import { registerUser } from '../../api/watchtowerApi';
 import { useAuth } from "../../api/AuthContext";
 
@@ -12,21 +11,21 @@ export default function Signup(){
   const { setToken } = useAuth();
   const isSignedIn = false;
 
-    const { register } = useAuth();
-
-    async function handleSignup(e){
-      e.preventDefault();
-      const form = e.target;
-      const username = form.username.value.trim();
-      const email = form.email.value.trim();
-      const password = form.password.value;
-      try {
-        await register(username, email, password);
-        navigate("/dashboard");
-      } catch (err) {
-        alert(err?.error || "Registration failed");
-      }
+  async function handleSignup(e){
+    e.preventDefault();
+    const formData = {
+      username: e.target.name.value,
+      email: e.target.email.value,
+      password: e.target.password.value,
+    };
+    try {
+      const result = await registerUser(formData);
+      setToken(result.token);
+      navigate("/dashboard");
+    } catch (err) {
+      // handle error (show message)
     }
+  }
 
   return (
     <div className="phonescreen">
@@ -38,10 +37,10 @@ export default function Signup(){
           <h2>Create account</h2>
           <p className="auth-sub">Join the community and help deter phone theft.</p>
 
-              <div className="field">
-                <label className="label" htmlFor="username">Username</label>
-                <input className="input" id="username" name="username" type="text" required placeholder="alexdoe" />
-              </div>
+          <div className="field">
+            <label className="label" htmlFor="name">Full name</label>
+            <input className="input" id="name" name="name" type="text" required placeholder="Alex Doe" />
+          </div>
 
           <div className="field">
             <label className="label" htmlFor="email">Email</label>
