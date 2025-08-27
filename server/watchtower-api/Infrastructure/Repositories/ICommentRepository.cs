@@ -4,16 +4,6 @@ using WatchtowerApi.Domain;
 
 namespace WatchtowerApi.Infrastructure.Repositories
 {
-<<<<<<< HEAD
-    Task<Comment> CreateAsync(int reportId, int userId, string commentText);
-    Task<Comment?> GetByIdAsync(long id);
-    Task<IEnumerable<Comment>> GetByReportIdAsync(int reportId);
-    Task<IEnumerable<Comment>> GetByUserIdAsync(int userId);
-    Task<Comment> UpdateAsync(int id, string commentText);
-    Task DeleteAsync(int id);
-    Task<int> GetCountByReportAsync(int reportId);
-    Task<int> GetCountByUserAsync(int userId);
-=======
     public interface ICommentRepository
     {
         Task<bool> ReportExistsAsync(long reportId);
@@ -33,5 +23,4 @@ namespace WatchtowerApi.Infrastructure.Repositories
         // Delete only if owner (or admin when allowed). Returns true if deleted, false if not found or not owned.
         Task<bool> DeleteOwnedAsync(long commentId, long userId, bool isAdmin = false);
     }
->>>>>>> f4b32f7545fbebd3204cd0ac576a4fe77944b7d5
 }
