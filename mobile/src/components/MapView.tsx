@@ -6,7 +6,8 @@ import MapView, {
   LongPressEvent,
   Callout,
 } from "react-native-maps";
-import { View, ActivityIndicator, Text, Pressable } from "react-native";
+import { View, ActivityIndicator, Text } from "react-native";
+import { palette } from "../theme"; // palette.green
 
 export type MapMarker = {
   id: number;
@@ -17,90 +18,94 @@ export type MapMarker = {
 };
 
 type Props = {
-  region: Region; // parent controls this
+  initialRegion: Region;                                   // uncontrolled start
   onRegionChangeComplete: (r: Region) => void;
   markers: MapMarker[];
   onLongPress?: (e: LongPressEvent) => void;
-  onMarkerPress?: (id: number) => void; // called when user taps callout / button
+  onMarkerPress?: (id: number) => void;                    // bubble to screen for navigation
   loading?: boolean;
 };
 
-// Approx Greater London bounds
-const LONDON_BOUNDS = {
-  minLat: 51.261, // south
-  maxLat: 51.686, // north
-  minLng: -0.563, // west
-  maxLng: 0.280, // east
-};
-
-function clampRegion(r: Region, b = LONDON_BOUNDS): Region {
-  const maxLatDelta = b.maxLat - b.minLat;
-  const maxLngDelta = b.maxLng - b.minLng;
-
-  let latitudeDelta = Math.min(r.latitudeDelta, maxLatDelta);
-  let longitudeDelta = Math.min(r.longitudeDelta, maxLngDelta);
-
-  const minLatCenter = b.minLat + latitudeDelta / 2;
-  const maxLatCenter = b.maxLat - latitudeDelta / 2;
-  const minLngCenter = b.minLng + longitudeDelta / 2;
-  const maxLngCenter = b.maxLng - longitudeDelta / 2;
-
-  const latitude = Math.min(Math.max(r.latitude, minLatCenter), maxLatCenter);
-  const longitude = Math.min(Math.max(r.longitude, minLngCenter), maxLngCenter);
-
-  return { latitude, longitude, latitudeDelta, longitudeDelta };
-}
+// Greater London bounds (southWest / northEast)
+const LONDON_SW = { latitude: 51.261, longitude: -0.3 };
+const LONDON_NE = { latitude: 51.686, longitude: 0.1 };
 
 export default function WTMap({
-  region,
+  initialRegion,
   onRegionChangeComplete,
   markers,
   onLongPress,
   onMarkerPress,
   loading,
 }: Props) {
-  const clamped = clampRegion(region);
+  const mapRef = React.useRef<MapView | null>(null);
+  const lastRegionRef = React.useRef<Region | null>(null);
+
+  React.useEffect(() => {
+    (mapRef.current as any)?.setMapBoundaries(LONDON_NE, LONDON_SW);
+  }, []);
+
+  const handleRegionChangeComplete = (r: Region) => {
+    lastRegionRef.current = r;
+    onRegionChangeComplete(r);
+  };
+
+  // Tiny helper: center on a coord, keeping current zoom. Nudge up a bit so callout fits.
+  const centerOn = (coord: { latitude: number; longitude: number }) => {
+    const r = lastRegionRef.current;
+    if (!r) return;
+    const nudge = r.latitudeDelta * 0.18; // move marker slightly down so callout has room above
+    (mapRef.current as any)?.animateToRegion(
+      {
+        latitude: coord.latitude - nudge / 2,
+        longitude: coord.longitude,
+        latitudeDelta: r.latitudeDelta,
+        longitudeDelta: r.longitudeDelta,
+      },
+      250
+    );
+  };
 
   return (
     <View style={{ flex: 1 }}>
       <MapView
+        ref={mapRef}
         style={{ flex: 1 }}
         provider={PROVIDER_GOOGLE}
-        region={clamped}
+        initialRegion={initialRegion}
+        onRegionChangeComplete={handleRegionChangeComplete}
+        // Let the map auto-move when the marker is pressed…
+        // (we also call centerOn in case the platform doesn’t do enough)
+        // moveOnMarkerPress is true by default, so we can omit it.
         minZoomLevel={9}
         maxZoomLevel={18}
-        onRegionChangeComplete={(r) => onRegionChangeComplete(clampRegion(r))}
         onLongPress={onLongPress}
       >
         {markers.map((m) => (
           <Marker
             key={m.id}
             coordinate={m.coordinate}
-            title={m.title}
-            description={m.description}
             pinColor={m.color}
+            onPress={() => centerOn(m.coordinate)}                 // ensure centering on marker tap
+            onCalloutPress={() => onMarkerPress?.(m.id)}           // Android-friendly callout press
           >
-            {/* First tap shows this popup */}
             <Callout onPress={() => onMarkerPress?.(m.id)}>
-              <View style={{ maxWidth: 240 }}>
-                <Text style={{ fontWeight: "700", marginBottom: 4 }}>{m.title}</Text>
-                <Text numberOfLines={3} style={{ opacity: 0.8 }}>
-                  {m.description}
-                </Text>
-
-                <Pressable
-                  onPress={() => onMarkerPress?.(m.id)}
-                  style={({ pressed }) => ({
+              <View style={{ minWidth: 200 }}>
+                <Text style={{ fontWeight: "bold" }} numberOfLines={1}>{m.title}</Text>
+                {!!m.description && (
+                  <Text style={{ marginTop: 4 }} numberOfLines={4}>{m.description}</Text>
+                )}
+                <View
+                  style={{
                     marginTop: 8,
-                    paddingVertical: 6,
-                    paddingHorizontal: 10,
-                    borderRadius: 8,
-                    backgroundColor: pressed ? "#e7eefc" : "#2a72ff",
-                    alignSelf: "flex-start",
-                  })}
+                    backgroundColor: palette.green,
+                    borderRadius: 10,
+                    paddingVertical: 8,
+                    alignItems: "center",
+                  }}
                 >
-                  <Text style={{ color: "white", fontWeight: "600" }}>View details</Text>
-                </Pressable>
+                  <Text style={{ color: "#fff", fontWeight: "700" }}>View Details</Text>
+                </View>
               </View>
             </Callout>
           </Marker>

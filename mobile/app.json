@@ -1,5 +1,12 @@
 {
   "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "965e2ae0-49a2-426f-934d-0be91c6cc94b"
+      },
+      "projectId": "965e2ae0-49a2-426f-934d-0be91c6cc94b",
+      "API_BASE_URL": "https://watchtower-api-backend.onrender.com/"
+    },
     "name": "mobile",
     "slug": "mobile",
     "version": "1.0.0",
@@ -13,7 +20,12 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourco.watchtower",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {

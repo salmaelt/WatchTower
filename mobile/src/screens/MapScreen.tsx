@@ -1,20 +1,18 @@
-// MapScreen.tsx
 import React from "react";
 import { View } from "react-native";
 import WTMap from "../components/MapView";
 import { listReportsByBbox } from "../api/reports";
-import { useQuery, keepPreviousData } from "@tanstack/react-query"; // 👈 import helper
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 
 function regionToBbox(r:{ latitude:number; longitude:number; latitudeDelta:number; longitudeDelta:number }) {
-  const minLat = r.latitude - r.latitudeDelta/2;
-  const maxLat = r.latitude + r.latitudeDelta/2;
-  const minLng = r.longitude - r.longitudeDelta/2;
-  const maxLng = r.longitude + r.longitudeDelta/2;
+  const minLat = r.latitude - 2*r.latitudeDelta/3;
+  const maxLat = r.latitude + 2*r.latitudeDelta/3;
+  const minLng = r.longitude - 2*r.longitudeDelta/3;
+  const maxLng = r.longitude + 2*r.longitudeDelta/3;
   return { minLng, minLat, maxLng, maxLat };
 }
 
-// simple debounce hook
-function useDebouncedValue<T>(value: T, delay = 250) {
+function useDebouncedValue<T>(value: T, delay = 200) {
   const [v, setV] = React.useState(value);
   React.useEffect(() => {
     const id = setTimeout(() => setV(value), delay);
@@ -28,21 +26,20 @@ export default function MapScreen({ navigation }: any) {
     latitude: 51.5074, longitude: -0.1278, latitudeDelta: 0.2, longitudeDelta: 0.2
   });
 
-  // live bbox changes as map moves; debouncedBbox drives the query
   const liveBbox = React.useMemo(() => regionToBbox(region), [region]);
   const debouncedBbox = useDebouncedValue(liveBbox, 300);
 
   const { data, isFetching } = useQuery({
-    queryKey: ["reports", debouncedBbox],                     // 🔑 run when debounced bbox changes
+    queryKey: ["reports", debouncedBbox],
     queryFn: () => listReportsByBbox(debouncedBbox),
-    placeholderData: keepPreviousData,                        // ✅ v5 replacement
-    staleTime: 15_000,                                        // reduces refetch churn while panning a bit
+    placeholderData: keepPreviousData,
+    staleTime: 15_000,
   });
 
-  const markers = (data?.features ?? []).map(f => ({
+  const markers = (data?.features ?? []).map((f: any) => ({
     id: f.properties.id,
     coordinate: { latitude: f.geometry.coordinates[1], longitude: f.geometry.coordinates[0] },
-    title: `${f.properties.type} (${f.properties.upvotes}↑)`,
+    title: `Phone Theft (${f.properties.upvotes}↑)`,
     description: f.properties.description,
     color: f.properties.upvotedByMe ? "purple" : undefined,
   }));
@@ -50,19 +47,16 @@ export default function MapScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1 }}>
       <WTMap
-        region={region}
-        onRegionChangeComplete={setRegion}                      // 👈 no refetch() here
+        initialRegion={region}
+        onRegionChangeComplete={setRegion}
         markers={markers}
         loading={isFetching}
         onLongPress={(e)=> {
           const { latitude, longitude } = e.nativeEvent.coordinate;
-          navigation.navigate("CreateReport", {                 // 👈 correct route name
-            initialCoord: { latitude, longitude }
-          });
+          navigation.navigate("CreateReport", { initialCoord: { latitude, longitude } });
         }}
-        onMarkerPress={(id)=> navigation.navigate("ReportDetail", { id })}
+        onMarkerPress={(id) => navigation.navigate("ReportDetail", { id })}
       />
     </View>
   );
 }
-

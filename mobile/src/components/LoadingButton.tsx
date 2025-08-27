@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, ViewStyle } from "react-native";
+import { palette } from "../theme";
 
 type Props = {
   title: string;
@@ -89,8 +90,8 @@ const s = StyleSheet.create({
   fullWidth: { alignSelf: "stretch" },
 
   // Variants
-  btnPrimary: { backgroundColor: "#2a72ff" },
-  btnPrimaryDisabled: { backgroundColor: "#aac3ff" },
+  btnPrimary: { backgroundColor: palette.green },
+  btnPrimaryDisabled: { backgroundColor: palette.greenD },
 
   btnDanger: { backgroundColor: "#e15656" },
   btnDangerDisabled: { backgroundColor: "#f1a6a6" },
