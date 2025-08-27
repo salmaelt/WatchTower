@@ -1,0 +1,56 @@
+@media screen and (max-width: 432px) and (max-height: 932px) {
+    .signup-page {
+        max-width: 100%;
+        padding: 1rem;
+    }
+
+    .signup-page h1 {
+        font-size: 1.5em;
+    }
+
+    .signup-page form {
+        flex-direction: column;
+    }
+
+    .signup-page input {
+        padding: 0.6rem;
+    }
+
+    .signup-page button {
+        padding: 0.6rem;
+    }
+}
+
+    .signup-page h1 {
+        font-size: 2em;
+        margin-bottom: 1rem;
+    }
+
+    .signup-page form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .signup-page label {
+        margin-bottom: 0.5rem;
+    }
+
+    .signup-page input {
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .signup-page button {
+        padding: 0.8rem;
+        background-color: #646cff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .signup-page button:hover {
+        background-color: #535bf2;
+    }

@@ -1,0 +1,55 @@
+body, html {
+  margin: 0;
+  padding: 0;
+}
+.homepage-container {
+  background: darkolivegreen;
+  width: 100vw;
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  gap: 2rem;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+.homepage-title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+.homepage-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+.homepage-link {
+  font-size: 1.3rem;
+  padding: 1rem;
+  background: #fff;
+  color: darkolivegreen;
+  border-radius: 8px;
+  text-align: center;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+@media screen and (min-width: 800px) {
+  .homepage-container {
+    width: 100vw;
+    min-height: 100vh;
+    padding: 3rem;
+    gap: 3rem;
+  }
+  .homepage-title {
+    font-size: 3.5rem;
+  }
+  .homepage-link {
+    font-size: 1.5rem;
+    padding: 1.5rem;
+  }
+}

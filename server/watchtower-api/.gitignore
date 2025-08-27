@@ -39,6 +39,7 @@ coverage/
 .env
 .env.*
 appsettings.Local.json
+*.appsettings.Development.json
 appsettings.*.Local.json
 
 # --- Rider / IntelliJ artifacts ---

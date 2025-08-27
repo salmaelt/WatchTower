@@ -1,0 +1,228 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.App { text-align: center; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+
+:root{
+  --green:#2f6b57;
+  --green-d:#285a49;
+  --pill:#264f42;
+  --text:#eaf5ef;
+}
+
+.phonescreen {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: auto;
+  background: white;
+  position: relative;
+}
+
+h2 {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  position: absolute;
+  padding: 20px;
+  
+  top: 50px;
+  left: 100px;
+  color: var(--green);
+  font: 900 32px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  transform:translateX(-10%);
+  text-align: center;
+  margin-top: 50px;
+  
+}
+
+
+.map-box {
+  position: absolute;
+  top: 160px;                 
+  left: 12px;
+  right: 12px;
+  height: 420px;
+  border: 5px solid var(--green-d);             
+  border-radius: 16px;
+  overflow: hidden;          
+  background: #0b0b0b;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+.map-home-card{
+  background: var(--card);
+    border: 2px solid #1f2937;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .15);
+    padding: 8px;
+    margin-bottom: 12px;
+    width: 90vw;
+    left: 40px;
+    position: relative;
+}
+.map-box .leaflet-container {
+  width: 100%;
+  height: 100%;
+}
+
+body, html, #root { height: 100%; }
+#root { display: flex; align-items: flex-start; justify-content: center; }
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.map-msg {
+  position: absolute; left: 12px; bottom: 12px; z-index: 1000;
+  background: rgba(220,38,38,.85); color:#fff; padding: 6px 10px;
+  border-radius: 8px; font-size: 12px;
+}
+
+.map {
+  height: 800px;
+  width: 300px;         
+  margin: 0 auto;      
+  border-radius: 12px;
+  overflow: hidden;     
+}
+.map-ui {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 8px;
+  z-index: 1000;
+}
+.map-btn {
+  appearance: none;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(0,0,0,.65);
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+.map-btn:hover { background: rgba(0,0,0,.8); }
+.map-msg {
+  position: absolute; left: 12px; bottom: 12px; z-index: 1000;
+  background: rgba(220,38,38,.85); color:#fff; padding: 6px 10px;
+  border-radius: 8px; font-size: 12px;
+}
+
+.map--tall { height: 80vh; width: 100vw; max-width: none; }
+
+.actions{
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 100px; 
+  display: flex;
+  justify-content: flex-end; 
+  z-index: 1050;
+}
+
+.report-btn{
+  padding: 12px 16px;
+  border: none;
+  border-radius: 14px;
+  background: #2f6b57;
+  color: #fff;
+  font-weight: 800;
+  font-size: 16px;
+  display: inline-flex;       /* shrink to content */
+  align-items: center;
+  gap: 10px;                  /* space between text and arrow */
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,.2);
+  transition: background .15s ease, transform .05s ease;
+}
+
+.report-btn:hover{ background: #285a49; }
+.report-btn:active{ transform: translateY(1px); }
+
+/* Arrow icon styling + subtle motion */
+.report-btn .arrow{
+  width: 18px;
+  height: 18px;
+  display: block;
+  transform: translateX(0);
+  transition: transform .2s ease;
+  opacity: .95;
+}
+.report-btn:hover .arrow{
+  transform: translateX(3px); /* nudge on hover */
+}
+
+.bottom-nav{
+  position:absolute;
+  left:16px; right:16px; bottom:16px;
+  background: var(--green);
+  border-radius: 20px;
+  padding: 8px;
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  z-index: 1100;
+}
+
+/* items */
+.nav-item{
+  flex:1;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:4px;
+  color: var(--text);
+  text-decoration:none;
+  font-size: 12px;
+  font-weight: 700;
+  padding:8px 0;
+  border-radius: 14px;
+  opacity:.9;
+  transition: background .15s ease;
+}
+.nav-item svg{
+  display:block;
+  transition: transform .2s ease;          /* 👈 enables nudge */
+}
+.nav-item span{
+  transition: transform .2s ease, opacity .2s ease;  /* 👈 label follows */
+}
+
+/* hover / focus nudge */
+.nav-item:hover svg,
+.nav-item:focus-visible svg{ transform: translateX(3px); }
+.nav-item:hover span,
+.nav-item:focus-visible span{ transform: translateX(2px); }
+
+/* pressed state */
+.nav-item:active{ transform: translateY(1px); }
+
+/* active (current page) */
+.nav-item.active{
+  background: rgba(255,255,255,0.14);
+  opacity:1;
+}
+/* keep the nudge on active too */
+.nav-item.active svg,
+.nav-item.active span{ transform: translateX(2px); }
+
+/* button version for account */
+.as-button{ background:none; border:none; cursor:pointer; }
+.as-button:focus-visible{ outline:2px solid rgba(255,255,255,.4); outline-offset:2px; }
+
+/* respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .nav-item svg, .nav-item span{ transition: none; }
+}
