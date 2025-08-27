@@ -1,5 +1,5 @@
 import "leaflet/dist/leaflet.css";
-import "../../App";
+import "../../App.css";
 import "./Report.css";
 
 import {
@@ -18,7 +18,6 @@ import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
 import useGeoLocation from "../../hooks/GeoLocation";
 import { createReport } from "../../api/watchtowerApi";
 import { useAuth } from "../../api/AuthContext";
-import { getReports } from "../../api/reports";
 import markerPng from "../../img/marker.png";
 
 const custIcon = L.icon({
@@ -63,8 +62,7 @@ export default function Report() {
   const [me, setMe] = useState(null); // 
   const [error, setError] = useState("");
 
-  //add actual api here from backend
-  const reports = useMemo(() => getReports(), []);
+  // Reports list not needed on create page; removed erroneous async call
 
   const handleUseMyLocation = async () => {
     try {
