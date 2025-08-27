@@ -68,3 +68,70 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+### Routing
+
+` src/App.jsx` defines routes (examples):
+
+ - `/` → Location (Home map)
+ - `/report` → Report
+ - `/report/thanks` → ReportThanks
+ - `/live` → LiveReports
+ - `/user` or /profile → UserProfile
+ - `/login` → Login
+ - `/signup` → Signup
+
+The BottomNavBar links to Home, Live, and User pages. “Report now” buttons from Home or Live link to /report.
+
+## Reports/Report.jsx (Create a report)
+
+- **Tap-to-pick**: Tap the map to pick a point (uses a small `ClickCapture` component via `useMapEvents`).
+- **Form collects**:
+  - Location *(optional text)*
+  - Brief description 
+  - Time of incident *(`datetime-local`)*
+- **On submit**:
+  - Validates that a map point was picked + description + time.
+  - Calls `store/reports.addReport(...)` *(for now)*.
+  - Navigates to `/report/thanks` with the new report ID
+---
+
+## Reports/ReportThanks.jsx
+- Simple “Thank you” card with:
+  -   View live reports button
+  -   Back home link
+
+--- 
+### `signup/Login.jsx` & `signup/Signup.jsx`
+- **UI:** Minimal forms with **grey inputs** and a **green primary** submit button.
+- **Flow:** On success, navigate to **UserProfile**.
+- **Backend (to be wired):**
+  - `POST /auth/login`
+  - `POST /auth/register`
+
+---
+
+## Components
+
+### `components/BottomNavBar/`
+- **Layout:** Rounded, **floating** bottom navigation bar in WatchTower green.
+- **Items:**  
+  - **Home** (map)  
+  - **Live** (live reports)  
+  - **User** (profile / auth)
+- **UX:** Active item highlighted; subtle hover/tap **“nudging”** animation via CSS.
+
+---
+
+## Hooks
+
+### `hooks/GeoLocation.jsx`
+- **Purpose:** Promise-based wrapper around `navigator.geolocation`.
+- **Shape:**
+  ```js
+  {
+    loaded: boolean,
+    coordinates: { lat: number, lng: number } | null,
+    accuracy: number | null,
+    error: any | null
+  }
