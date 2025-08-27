@@ -1,17 +1,51 @@
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
 import "../signup/Auth.css";
+import { loginUser } from "../../api/watchtowerApi";
+import { useAuth } from "../../api/AuthContext";
 
-export default function LoginPage(){
+export default function LoginPage() {
   const navigate = useNavigate();
-  const isSignedIn = !!localStorage.getItem("token");
+  const { setToken } = useAuth(); // AuthContext
+  const [token, setLocalToken] = useState(localStorage.getItem("token") || null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleLogin(e){
+  const isSignedIn = !!token;
+
+  // Redirect if already signed in
+  useEffect(() => {
+    if (isSignedIn) navigate("/dashboard");
+  }, [isSignedIn, navigate]);
+
+  async function handleLogin(e) {
     e.preventDefault();
-    //replace this with actual api call later
-    localStorage.setItem("token", "demo-token");
-    localStorage.setItem("username", "demo-user"); // After successful login/signup
-    navigate("/dashboard");
+    setError("");
+    setLoading(true);
+
+    const formData = {
+      usernameOrEmail: e.target.email.value,
+      password: e.target.password.value,
+    };
+
+    try {
+      const result = await loginUser(formData);
+      console.log("API response:", result);
+
+      // Store token in AuthContext, state, and localStorage
+      setToken(result.token);
+      setLocalToken(result.token);
+      localStorage.setItem("token", result.token);
+      localStorage.setItem("username", result.username);
+
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Login failed:", err);
+      setError(err.error || "Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
