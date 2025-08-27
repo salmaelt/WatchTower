@@ -19,6 +19,7 @@ import useGeoLocation from "../../hooks/GeoLocation";
 import { createReport } from "../../api/watchtowerApi";
 import { useAuth } from "../../api/AuthContext";
 import markerPng from "../../img/marker.png";
+import { useEffect } from "react";
 
 const custIcon = L.icon({
   iconUrl: markerPng,
@@ -102,7 +103,8 @@ export default function Report() {
         lng: picked.lng,
       };
       await createReport(reportData, token);
-      navigate(`/report/thanks`);
+      // after successful submit, navigate to live to see it reflected
+      navigate(`/live`);
     } catch (err) {
       setError("Failed to submit report.");
     }
