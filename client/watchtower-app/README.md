@@ -71,7 +71,7 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 
 ### Routing
 
-` src/App.jsx` defines routes (examples):
+` src/App.jsx` defines routes:
 
  - `/` → Location (Home map)
  - `/report` → Report
@@ -92,7 +92,7 @@ The BottomNavBar links to Home, Live, and User pages. “Report now” buttons f
   - Time of incident *(`datetime-local`)*
 - **On submit**:
   - Validates that a map point was picked + description + time.
-  - Calls `store/reports.addReport(...)` *(for now)*.
+  - Calls `store/reports.addReport(...)`.
   - Navigates to `/report/thanks` with the new report ID
 ---
 
@@ -105,7 +105,7 @@ The BottomNavBar links to Home, Live, and User pages. “Report now” buttons f
 ### `signup/Login.jsx` & `signup/Signup.jsx`
 - **UI:** Minimal forms with **grey inputs** and a **green primary** submit button.
 - **Flow:** On success, navigate to **UserProfile**.
-- **Backend (to be wired):**
+- **Backend:**
   - `POST /auth/login`
   - `POST /auth/register`
 
