@@ -5,7 +5,8 @@ import "./Report.css";
 import { MapContainer, TileLayer, Marker, Popup, Circle, CircleMarker } from "react-leaflet";
 import L from "leaflet";
 import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
-import { getReports as fetchReports } from "../../api/reports";
+import SafetyTips from "../../components/SafetyTips";
+import { getReports as fetchReports, upvoteReport, removeUpvoteReport } from "../../api/reports";
 import { useAuth } from "../../api/AuthContext";
 import React from "react";
 import useGeoLocation from "../../hooks/GeoLocation";
@@ -41,6 +42,7 @@ export default function LiveReports() {
         const bbox = boundsToBbox(londonBounds);
         const geojson = await fetchReports({ bbox }, token || localStorage.getItem("token"));
         // Expecting a FeatureCollection of point features
+        const currentUserId = Number(localStorage.getItem("userId"));
         const items = (geojson?.features || []).map((f) => ({
           id: f.properties?.id ?? `${f.geometry?.coordinates?.join(",")}`,
           lat: f.geometry?.coordinates?.[1],
@@ -48,6 +50,10 @@ export default function LiveReports() {
           description: f.properties?.description || "Report",
           time: f.properties?.occurredAt || f.properties?.createdAt,
           locationText: f.properties?.locationText,
+          upvotes: f.properties?.upvotes ?? 0,
+          upvotedByMe: !!f.properties?.upvotedByMe,
+          ownerUserId: f.properties?.user?.id,
+          ownReport: typeof currentUserId === "number" && !Number.isNaN(currentUserId) && f.properties?.user?.id === currentUserId,
         })).filter((r) => typeof r.lat === "number" && typeof r.lng === "number");
         if (!cancelled) setReports(items);
       } catch (e) {
@@ -57,6 +63,31 @@ export default function LiveReports() {
     load();
     return () => { cancelled = true; };
   }, [token]);
+
+  async function handleToggleUpvote(id, upvotedByMe) {
+    if (!isSignedIn) {
+      alert("Please sign in to upvote.");
+      return;
+    }
+    const target = reports.find((r) => r.id === id);
+    if (target?.ownReport) {
+      alert("You cannot upvote your own report.");
+      return;
+    }
+    try {
+      const authToken = token || localStorage.getItem("token");
+      if (upvotedByMe) {
+        const res = await removeUpvoteReport(id, authToken);
+        setReports((prev) => prev.map((r) => r.id === id ? { ...r, upvotes: res.upvotes, upvotedByMe: res.upvotedByMe } : r));
+      } else {
+        const res = await upvoteReport(id, authToken);
+        setReports((prev) => prev.map((r) => r.id === id ? { ...r, upvotes: res.upvotes, upvotedByMe: res.upvotedByMe } : r));
+      }
+    } catch (e) {
+      const message = e?.title || e?.error || "Failed to update upvote.";
+      setError(message);
+    }
+  }
 
   async function handleSeeLive() {
     const map = mapRef.current;
@@ -118,9 +149,18 @@ export default function LiveReports() {
               {reports.map(r => (
                 <Marker key={r.id} position={[r.lat, r.lng]} icon={custIcon}>
                   <Popup>
-                    <strong>{r.description}</strong><br />
-                    {new Date(r.time || r.createdAt).toLocaleString()}<br />
-                    {r.locationText || "Pinned on map"}
+                    <div style={{display:"flex", flexDirection:"column", gap:6}}>
+                      <strong>{r.description}</strong>
+                      <span>{new Date(r.time || r.createdAt).toLocaleString()}</span>
+                      <span>{r.locationText || "Pinned on map"}</span>
+                      <button
+                        onClick={() => handleToggleUpvote(r.id, r.upvotedByMe)}
+                        className="map-btn"
+                        style={{alignSelf:"flex-start"}}
+                      >
+                        {r.upvotedByMe ? `Remove Upvote (${r.upvotes})` : `Upvote (${r.upvotes})`}
+                      </button>
+                    </div>
                   </Popup>
                 </Marker>
               ))}
@@ -150,10 +190,23 @@ export default function LiveReports() {
               {error && <p className="error">{error}</p>}
               {reports.length === 0 && !error && <p className="muted">Nothing yet. Submit a report to see it here.</p>}
               {reports.map(r => (
-                <div className="recent-item" key={r.id}>
-                  <div className="ri-title">{r.description}</div>
-                  <div className="ri-meta">
-                    {new Date(r.time || r.createdAt).toLocaleString()} · {r.locationText || `${r.lat.toFixed(4)}, ${r.lng.toFixed(4)}`}
+                <div className="recent-item" key={r.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12 }}>
+                  <div>
+                    <div className="ri-title">{r.description}</div>
+                    <div className="ri-meta">
+                      {new Date(r.time || r.createdAt).toLocaleString()} · {r.locationText || `${r.lat.toFixed(4)}, ${r.lng.toFixed(4)}`}
+                    </div>
+                  </div>
+                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <span className="ri-meta" aria-label="Total upvotes">{r.upvotes}</span>
+                    <button
+                      onClick={() => handleToggleUpvote(r.id, r.upvotedByMe)}
+                      className="map-btn"
+                      disabled={r.ownReport}
+                      title={r.ownReport ? "You cannot upvote your own report" : undefined}
+                    >
+                      {r.ownReport ? "Your report" : (r.upvotedByMe ? "Remove Upvote" : "Upvote")}
+                    </button>
                   </div>
                 </div>
               ))}
@@ -162,7 +215,11 @@ export default function LiveReports() {
         </section>
       </div>
 
-      <BottomNavBar isSignedIn={isSignedIn} />
+      <div style={{ padding: "0 12px 12px" }}>
+        <SafetyTips />
+      </div>
+
+     
     </div>
   );
 }

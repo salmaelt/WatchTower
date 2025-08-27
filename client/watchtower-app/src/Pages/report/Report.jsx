@@ -20,6 +20,7 @@ import { createReport } from "../../api/watchtowerApi";
 import { useAuth } from "../../api/AuthContext";
 import markerPng from "../../img/marker.png";
 import { useEffect } from "react";
+import SafetyTips from "../../components/SafetyTips";
 
 const custIcon = L.icon({
   iconUrl: markerPng,
@@ -277,7 +278,10 @@ export default function Report() {
         </div>
       </div>
 
-      
+      <div style={{ padding: "0 12px 12px" }}>
+        <SafetyTips />
+      </div>
+
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useGeoLocation from "../hooks/GeoLocation";
 import BottomNavBar from "../components/BottomNavBar/BottomNavBar";
+import SafetyTips from "../components/SafetyTips";
 import markerPng from "../img/marker.png";
 import { getReports as fetchReports } from "../api/reports";
 import { useAuth } from "../api/AuthContext";
@@ -135,7 +136,8 @@ export default function Location() {
 
   return (
     <div className="phonescreen">
-     
+      <BottomNavBar isSignedIn={isSignedIn} />
+
         <div className="map-box">
           <MapContainer
             center={[51.5072, -0.1276]}
@@ -157,7 +159,13 @@ export default function Location() {
 
             {reports.map((r) => (
               <Marker key={r.id} position={[r.lat, r.lng]} icon={custIcon}>
-                <Popup>{r.description}</Popup>
+                <Popup>
+                  <div style={{display:"flex", flexDirection:"column", gap:6}}>
+                    <strong>{r.description}</strong>
+                    <span>{r.locationText || `${r.lat.toFixed(4)}, ${r.lng.toFixed(4)}`}</span>
+                    {/* Read-only on the homepage; upvote available on /live */}
+                  </div>
+                </Popup>
               </Marker>
             ))}
 
@@ -189,7 +197,9 @@ export default function Location() {
         </button>
       </div>
 
-      <BottomNavBar isSignedIn={isSignedIn} />
+      <div style={{ padding: "12px", position: "relative", zIndex: 1102 }}>
+        <SafetyTips />
+      </div>
     </div>
   );
 }
