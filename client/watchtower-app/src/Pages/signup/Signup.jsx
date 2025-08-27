@@ -22,8 +22,10 @@ export default function Signup(){
       const password = form.password.value;
       try {
         await register(username, email, password);
+        console.log("Registration successful");
         navigate("/dashboard");
       } catch (err) {
+        console.log("Registration unsuccessful", err);
         alert(err?.error || "Registration failed");
       }
     }

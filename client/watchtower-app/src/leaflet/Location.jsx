@@ -4,11 +4,13 @@ import "./Location.css";
 
 import { MapContainer, TileLayer, Marker, Popup, Circle, CircleMarker } from "react-leaflet";
 import L from "leaflet";
+
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useGeoLocation from "../hooks/GeoLocation";
 import BottomNavBar from "../components/BottomNavBar/BottomNavBar";
 import markerPng from "../img/marker.png";
+import { useAuth } from "../api/AuthContext";
 
 const custIcon = L.icon({ iconUrl: markerPng, iconSize: [38, 38], iconAnchor: [19, 38] });
 
@@ -17,12 +19,14 @@ const londonBounds = [
   [51.70,  0.33],
 ];
 
+
 export default function Location() {
   const mapRef = useRef(null);
   const [bounded, setBounded] = useState(true);
   const [me, setMe] = useState(null);
   const navigate = useNavigate();
-  const isSignedIn = !!localStorage.getItem("token");
+  const { token } = useAuth();
+  const isSignedIn = !!token;
   const geo = useGeoLocation();
 
   /* WHEN API IS CONNECTED REPLACE CONT MARKERS WITH THIS
