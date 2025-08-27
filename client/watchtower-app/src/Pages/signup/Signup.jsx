@@ -38,7 +38,7 @@ export default function Signup(){
     };
     try {
       const result = await registerUser(formData);
-      setToken(result.token);
+      localStorage.setToken(result.token);
       navigate("/dashboard");
     } catch (err) {
       // handle error (show message)
