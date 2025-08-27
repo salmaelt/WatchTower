@@ -34,8 +34,10 @@ export default function LoginPage() {
       console.log("API response:", result);
       
       // Store token in AuthContext and localStorage
-      setToken(result.token);
+      // Set token immediately so route guards see it synchronously
       localStorage.setItem("token", result.token);
+      setToken(result.token);
+      // Also store username for immediate greeting
       localStorage.setItem("username", result.username);
       
       navigate("/dashboard");

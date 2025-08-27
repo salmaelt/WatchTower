@@ -2,7 +2,7 @@
 
 
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { login as apiLogin, register as apiRegister } from "./auth";
 
 const AuthContext = createContext({
@@ -14,8 +14,30 @@ const AuthContext = createContext({
 });
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(null);
-  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
+  const [user, setUser] = useState(() => {
+    const username = localStorage.getItem("username");
+    const id = localStorage.getItem("userId");
+    return username ? { id: id ? Number(id) : undefined, username } : null;
+  });
+
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem("token", token);
+    } else {
+      localStorage.removeItem("token");
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (user?.username) {
+      localStorage.setItem("username", user.username);
+      if (user.id != null) localStorage.setItem("userId", String(user.id));
+    } else {
+      localStorage.removeItem("username");
+      localStorage.removeItem("userId");
+    }
+  }, [user]);
 
   const login = async (usernameOrEmail, password) => {
     try {
@@ -44,8 +66,10 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const value = useMemo(() => ({ token, setToken, user, login, register, logout }), [token, user]);
+
   return (
-    <AuthContext.Provider value={{ token, setToken, user, login, register, logout }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
