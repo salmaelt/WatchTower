@@ -110,7 +110,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddCors(o =>
 {
     o.AddDefaultPolicy(p =>
-        p.WithOrigins("http://localhost:5173")    // Vite default
+        p.WithOrigins("http://localhost:5173", "http://localhost:3000") // Vite and React
          .AllowAnyHeader()
          .AllowAnyMethod());
 });
