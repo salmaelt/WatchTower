@@ -148,7 +148,7 @@ export default function Location() {
             maxBoundsViscosity={bounded ? 1.0 : undefined}
             minZoom={10}
             maxZoom={18}
-            whenCreated={(map) => (mapRef.current = map)}
+           // whenCreated={(map) => (mapRef.current = map)}
             onmoveend={handleMoveEnd}
           >
             <TileLayer
