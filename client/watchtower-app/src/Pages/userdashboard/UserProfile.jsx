@@ -1,34 +1,50 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
-import { getReports, updateReport, deleteReport } from "../../store/reports";
+import { getReports, deleteReport } from "../../api/watchtowerApi";
+import { useAuth } from "../../api/AuthContext";
 import "./UserProfile.css";
 
 export default function UserProfile() {
-  const username = localStorage.getItem("username");
   const navigate = useNavigate();
+  const { token, setToken } = useAuth();
   const [myReports, setMyReports] = useState([]);
-  const [allReports, setAllReports] = useState([]);
-  const [signedIn, setSignedIn] = useState(() => !!localStorage.getItem("token"));
+  const signedIn = !!token;
 
   useEffect(() => {
-    setMyReports(getReports().filter(r => r.user === username));
-    setAllReports(getReports());
-  }, [username]);
+    async function fetchReports() {
+      try {
+        // Example bbox for London, adjust as needed
+        const bbox = "-0.51,51.28,0.33,51.70";
+        const geojson = await getReports({ bbox }, token);
+        // Filter reports by current user
+        setMyReports(
+          geojson.features.filter(
+            f => f.properties.user && f.properties.user.username
+          )
+        );
+      } catch (err) {
+        setMyReports([]);
+      }
+    }
+    if (signedIn) fetchReports();
+  }, [token, signedIn]);
 
   const handleSignOut = () => {
-    localStorage.removeItem("token");
-    setSignedIn(false);
+    setToken(null);
   };
 
   const handleSignIn = () => {
     navigate("/signin");
   };
 
-  function handleDelete(id) {
-    deleteReport(id);
-    setMyReports(myReports.filter(r => r.id !== id));
-    setAllReports(allReports.filter(r => r.id !== id));
+  async function handleDelete(id) {
+    try {
+      await deleteReport(id, token);
+      setMyReports(myReports.filter(r => r.properties.id !== id));
+    } catch (err) {
+      // handle error
+    }
   }
 
   function handleEdit(id) {
@@ -37,17 +53,17 @@ export default function UserProfile() {
 
   return (
     <div className="phonescreen">
-       <BottomNavBar isSignedIn={signedIn} />
+      <BottomNavBar isSignedIn={signedIn} />
       <div className="brand-title"></div>
-
       <div className="dash-wrap">
         <div className="dash-header">
           <h2>Dashboard</h2>
           <p className="muted">
-            {signedIn ? "Welcome back! Manage your reports and account." : "You’re signed out. Sign in to see your reports."}
+            {signedIn
+              ? "Welcome back! Manage your reports and account."
+              : "You’re signed out. Sign in to see your reports."}
           </p>
         </div>
-
         <div className="dash-grid">
           <section className="dash-card">
             <h3>My reports</h3>
@@ -57,12 +73,12 @@ export default function UserProfile() {
                   <p className="muted">You haven’t submitted any reports yet.</p>
                 ) : (
                   myReports.map(report => (
-                    <div key={report.id} className="userprofile-report-item">
-                      <div><b>Description:</b> {report.description}</div>
-                      <div><b>Location:</b> {report.locationText}</div>
-                      <div><b>Time:</b> {report.time}</div>
-                      <button className="edit-btn" onClick={() => handleEdit(report.id)}>Edit</button>
-                      <button className="delete-btn" onClick={() => handleDelete(report.id)}>Delete</button>
+                    <div key={report.properties.id} className="userprofile-report-item">
+                      <div><b>Description:</b> {report.properties.description}</div>
+                      <div><b>Location:</b> {report.properties.locationText || ""}</div>
+                      <div><b>Time:</b> {report.properties.occurredAt}</div>
+                      <button className="edit-btn" onClick={() => handleEdit(report.properties.id)}>Edit</button>
+                      <button className="delete-btn" onClick={() => handleDelete(report.properties.id)}>Delete</button>
                     </div>
                   ))
                 )}
@@ -85,16 +101,12 @@ export default function UserProfile() {
               </>
             )}
           </section>
-
-          
-
           <section className="dash-card">
             <h3>Account</h3>
             <div className="dash-row">
               <span>Status</span>
               <strong style={{ color: "#2f6b57" }}>{signedIn ? "Signed in" : "Signed out"}</strong>
             </div>
-
             <div className="dash-actions">
               {signedIn ? (
                 <button className="btn-ghost" onClick={handleSignOut}>Sign out</button>
@@ -104,11 +116,8 @@ export default function UserProfile() {
             </div>
           </section>
         </div>
-
         <div className="bottom-pad" />
       </div>
-
-     
     </div>
   );
 }

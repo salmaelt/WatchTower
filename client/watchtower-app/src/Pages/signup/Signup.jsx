@@ -2,17 +2,29 @@ import { useNavigate, Link } from "react-router-dom";
 import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
 import "./Auth.css";
 import phoneimage from "../../img/paletteBackground.png"
+import { registerUser } from '../../api/watchtowerApi';
+import { useAuth } from "../../api/AuthContext";
 
 
 export default function Signup(){
   const navigate = useNavigate();
-  const isSignedIn = !!localStorage.getItem("token");
+  const { setToken } = useAuth();
+  const isSignedIn = false;
 
-  function handleSignup(e){
+  async function handleSignup(e){
     e.preventDefault();
-    // replace with actual api call later
-    localStorage.setItem("token", "demo-token");
-    navigate("/dashboard"); 
+    const formData = {
+      username: e.target.name.value,
+      email: e.target.email.value,
+      password: e.target.password.value,
+    };
+    try {
+      const result = await registerUser(formData);
+      setToken(result.token);
+      navigate("/dashboard");
+    } catch (err) {
+      // handle error (show message)
+    }
   }
 
   return (

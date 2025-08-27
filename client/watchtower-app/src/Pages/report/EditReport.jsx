@@ -12,11 +12,12 @@ import {
   useMapEvents,
 } from "react-leaflet";
 import L from "leaflet";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
 import useGeoLocation from "../../hooks/GeoLocation";
-import { addReport, getReports, updateReport } from "../../store/reports";
+import { getReport, updateReport } from "../../api/watchtowerApi";
+import { useAuth } from "../../api/AuthContext";
 import markerPng from "../../img/marker.png";
 
 const custIcon = L.icon({
@@ -49,32 +50,32 @@ export default function Report() {
   const mapRef = useRef(null);
   const navigate = useNavigate();
   const geo = useGeoLocation();
-  const isSignedIn = !!localStorage.getItem("token");
+  const { token } = useAuth();
+  const isSignedIn = !!token;
   const { id } = useParams();
-  const report = getReports().find((r) => r.id === Number(id));
-
-  // Prefill form and picked location if report exists
-  const [form, setForm] = useState(
-    report
-      ? {
-          locationText: report.locationText,
-          description: report.description,
-          time: report.time,
-          lat: report.lat,
-          lng: report.lng,
-        }
-      : { locationText: "", description: "", time: "" }
-  );
-  const [picked, setPicked] = useState(
-    report && report.lat && report.lng
-      ? { lat: report.lat, lng: report.lng }
-      : null
-  );
+  const [form, setForm] = useState({ locationText: "", description: "", time: "" });
+  const [picked, setPicked] = useState(null);
   const [me, setMe] = useState(null);
   const [error, setError] = useState("");
 
-  //add actual api here from backend
-  const reports = useMemo(() => getReports(), []);
+  useEffect(() => {
+    async function fetchReport() {
+      try {
+        const report = await getReport(Number(id), token);
+        setForm({
+          locationText: report.properties.locationText || "",
+          description: report.properties.description || "",
+          time: report.properties.occurredAt || "",
+        });
+        if (report.geometry?.coordinates) {
+          setPicked({ lat: report.geometry.coordinates[1], lng: report.geometry.coordinates[0] });
+        }
+      } catch (err) {
+        // handle error
+      }
+    }
+    if (isSignedIn) fetchReport();
+  }, [id, token, isSignedIn]);
 
   const handleUseMyLocation = async () => {
     try {
@@ -93,7 +94,7 @@ export default function Report() {
     }
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -105,10 +106,12 @@ export default function Report() {
       return setError("Please add a brief description.");
     if (!form.time) return setError("Please select when it happened.");
 
-    // Save picked location to the report
-    updateReport(Number(id), { ...form, lat: picked.lat, lng: picked.lng });
-
-    navigate("/live");
+    try {
+      await updateReport(Number(id), { description: form.description.trim() }, token);
+      navigate("/live");
+    } catch (err) {
+      setError("Failed to update report.");
+    }
   };
 
   return (

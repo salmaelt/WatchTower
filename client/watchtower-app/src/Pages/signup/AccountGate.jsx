@@ -1,12 +1,14 @@
 import { useNavigate, Link } from "react-router-dom";
 import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
 import phoneimage from "../../img/paletteBackground.png"
+import { useAuth } from "../../api/AuthContext";
 
 //here we need to add out actual authentication from the backend so it can do login/signup decisions
 
 export default function AccountGate() {
   const navigate = useNavigate();
-  const isSignedIn = !!localStorage.getItem("token"); 
+  const { token } = useAuth();
+  const isSignedIn = !!token; 
 
   return (
     <div className="phonescreen" style={{

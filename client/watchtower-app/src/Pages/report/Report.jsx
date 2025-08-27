@@ -16,7 +16,9 @@ import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
 import useGeoLocation from "../../hooks/GeoLocation";
-import { addReport, getReports } from "../../store/reports";
+import { createReport } from "../../api/watchtowerApi";
+import { useAuth } from "../../api/AuthContext";
+import { getReports } from "../../api/reports";
 import markerPng from "../../img/marker.png";
 
 const custIcon = L.icon({
@@ -49,7 +51,8 @@ export default function Report() {
   const mapRef = useRef(null);
   const navigate = useNavigate();
   const geo = useGeoLocation();
-  const isSignedIn = !!localStorage.getItem("token");
+  const { token } = useAuth();
+  const isSignedIn = !!token;
 
   const [form, setForm] = useState({
     locationText: "",
@@ -80,7 +83,7 @@ export default function Report() {
     }
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -92,15 +95,19 @@ export default function Report() {
       return setError("Please add a brief description.");
     if (!form.time) return setError("Please select when it happened.");
 
-    const saved = addReport({
-      lat: picked.lat,
-      lng: picked.lng,
-      description: form.description.trim(),
-      time: form.time,
-      locationText: form.locationText.trim(),
-    });
-
-    navigate(`/report/thanks?id=${saved.id}`);
+    try {
+      const reportData = {
+        type: "phone_theft",
+        description: form.description.trim(),
+        occurredAt: new Date(form.time).toISOString(),
+        lat: picked.lat,
+        lng: picked.lng,
+      };
+      await createReport(reportData, token);
+      navigate(`/report/thanks`);
+    } catch (err) {
+      setError("Failed to submit report.");
+    }
   };
 
   return (
