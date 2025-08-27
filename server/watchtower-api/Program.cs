@@ -173,6 +173,9 @@ app.UseAuthorization();
 // Load Controllers
 app.MapControllers();
 
+// Application online endpoint
+app.MapGet("/", () => Results.Ok("Service is running"));
+
 // DB Health check endpoint
 app.MapGet("/db/health", async (AppDbContext db) =>
     Results.Ok(new { connected = await db.Database.CanConnectAsync() }));
