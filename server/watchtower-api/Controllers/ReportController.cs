@@ -356,6 +356,48 @@ namespace WatchtowerApi.Controllers
                 return Problem($"Server Error: {e.Message}", statusCode: 500);
             }
         }
+        
+        // GET /reports/me
+        [Authorize]
+        [HttpGet("me")]
+        [ProducesResponseType(typeof(GeoJsonFeatureCollection<ReportPropertiesDto>), 200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> GetMyReports()
+        {
+            try
+            {
+                // Get user id from JWT (throws if token is bad)
+                long currentUserId = AuthHelpers.GetUserId(User);
+
+                // Fetch all reports authored by this user
+                var myReports = await _reportRepository.GetByUserIdAsync(currentUserId);
+
+                // Build GeoJSON feature collection
+                var featureCollection = new GeoJsonFeatureCollection<ReportPropertiesDto>();
+                foreach (Report r in myReports)
+                {
+                    bool upvotedByMe = r.UpvoteUsers.Any(u => u.UserId == currentUserId);
+
+                    featureCollection.Features.Add(new GeoJsonFeature<ReportPropertiesDto>
+                    {
+                        Geometry = new GeoJsonPoint { Coordinates = new[] { r.Location.X, r.Location.Y } },
+                        Properties = ToPropsDto(r, upvotedByMe)
+                    });
+                }
+
+                return Ok(featureCollection);
+            }
+            catch (InvalidOperationException e)
+            {
+                // Thrown by AuthHelpers.GetUserId on bad token
+                return Problem($"Bad Token: ${e.Message}", statusCode: 401);
+            }
+            catch (Exception e)
+            {
+                return Problem($"Server Error: {e.Message}", statusCode: 500);
+            }
+        }
 
         // Helper Methods
         private static ReportPropertiesDto ToPropsDto(Report r, bool upvotedByMe) => new()
@@ -366,7 +408,7 @@ namespace WatchtowerApi.Controllers
             CreatedAt = r.CreatedAt,
             UpdatedAt = r.UpdatedAt,
             Status = r.Status,
-            Upvotes = r.UpvoteUsers?.Count ?? 0, 
+            Upvotes = r.UpvoteUsers?.Count ?? 0,
             UpvotedByMe = upvotedByMe,
             Description = r.Description,
             User = new ReportUserDto { Id = r.UserId, Username = r.User?.Username ?? "unknown" }

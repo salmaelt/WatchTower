@@ -39,7 +39,7 @@ export default function MapScreen({ navigation }: any) {
   const markers = (data?.features ?? []).map((f: any) => ({
     id: f.properties.id,
     coordinate: { latitude: f.geometry.coordinates[1], longitude: f.geometry.coordinates[0] },
-    title: `${f.properties.type} (${f.properties.upvotes}↑)`,
+    title: `Phone Theft (${f.properties.upvotes}↑)`,
     description: f.properties.description,
     color: f.properties.upvotedByMe ? "purple" : undefined,
   }));
