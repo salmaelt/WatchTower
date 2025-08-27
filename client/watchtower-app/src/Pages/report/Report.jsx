@@ -105,11 +105,11 @@ export default function Report() {
 
   return (
     <div className="phonescreen">
-      <div className="brand-title">WatchTower</div>
-
+      <div className="brand-title"></div>
+        <BottomNavBar isSignedIn={isSignedIn} />
       <div className="dash-wrap">
         <div className="dash-header">
-          <h2>Recent Reports</h2>
+          <h2>Recent Report</h2>
         </div>
      </div>
 
@@ -270,7 +270,7 @@ export default function Report() {
         </div>
       </div>
 
-      <BottomNavBar isSignedIn={isSignedIn} />
+      
     </div>
   );
 }

@@ -7,48 +7,41 @@
   --bg:#f7faf7;
 }
 
-.phonescreen{
-  width: 393px; 
-  height: 852px; 
-  margin: 24px auto;
-  border: 10px solid #111; 
-  border-radius: 36px; 
-  overflow: hidden;
-  background:#fff; 
-  box-shadow: 0 10px 40px rgba(0,0,0,.3); 
-  position: relative;
-}
+
 
 .brand-title{
   position:absolute; 
-  top:20px; 
+  top:50px; 
   left:50%; 
   transform:translateX(-50%);
   font: 900 32px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   color: var(--green);
+  margin: 70px 0px;
 }
 
 .auth-wrap{
   padding: 90px 16px 90px;
-  height: 100%;
+  height: 100vh;
+  width: 100vw;
   display:flex; 
   align-items:flex-start; 
   justify-content:center;
 }
 
 .auth-card{
-  width: 100%;
-  max-width: 340px;
+  width: 90%;
+  max-width: none;
   background: var(--card);
   border: 2px solid #1f2937;
   border-radius: 14px;
   box-shadow: 0 2px 10px rgba(0,0,0,.15);
   padding: 16px;
+  margin-top: 70px;
 }
 
 .auth-card h2{
   margin-bottom: 6px;
-  font-size: 20px;
+  font-size: 40px;
   color: var(--ink);
 }
 .auth-sub{
@@ -125,18 +118,17 @@
 .btn-ghost:hover{ background:#f1f8f4; }
 
 .muted{
-  margin-top: 12px; 
+  margin-top: 30px; 
   font-size: 13px; 
   color: var(--muted); 
   text-align:center;
+  top: 50px;
 }
 
 .muted a{ 
   color: var(--green); 
   text-decoration: none; 
-  font-weight: 800; 
-}
-
+  font-weight: 800; }
 .muted a:hover{ 
   text-decoration: underline; 
 }

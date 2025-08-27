@@ -37,7 +37,8 @@ export default function UserProfile() {
 
   return (
     <div className="phonescreen">
-      <div className="brand-title">WatchTower</div>
+       <BottomNavBar isSignedIn={signedIn} />
+      <div className="brand-title"></div>
 
       <div className="dash-wrap">
         <div className="dash-header">
@@ -107,7 +108,7 @@ export default function UserProfile() {
         <div className="bottom-pad" />
       </div>
 
-      <BottomNavBar isSignedIn={signedIn} />
+     
     </div>
   );
 }

@@ -114,6 +114,7 @@ export default function Report() {
   return (
     <div className="phonescreen">
       <div className="brand-title">WatchTower</div>
+      <BottomNavBar isSignedIn={isSignedIn} />
 
       <div className="dash-wrap">
         <div className="dash-header">

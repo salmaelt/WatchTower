@@ -1,3 +1,4 @@
+import React from 'react';
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import "./BottomNavBar.css";
 
@@ -9,17 +10,27 @@ export default function BottomNavBar({ isSignedIn = false }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
+  function handleProfileClick() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert("Please log in to access your profile.");
+      navigate('/signin');
+    } else {
+      navigate('/account');
+    }
+  }
+
   return (
-    <div className="bottom-nav">
-      <NavLink to="/" className={({ isActive }) => "nav-item" + ((isActive || pathname === "/") ? " active" : "")}>
-        <HomeIcon /><span>Home</span>
-      </NavLink>
-      <NavLink to="/live" className="nav-item">
-        <LiveIcon /><span>Live</span>
-      </NavLink>
-      <button className="nav-item as-button" onClick={() => navigate("/account")}>
-        <UserIcon /><span>{isSignedIn ? "Me" : "Sign in"}</span>
-      </button>
-    </div>
+    <nav className="topnav-container">
+      <div className="topnav-brand" onClick={() => navigate('/')}>WatchTower</div>
+      <div className="topnav-links">
+        <button className="topnav-btn" onClick={() => navigate('/')}>Home</button>
+        <button className="topnav-btn" onClick={() => navigate('/report')}>New Report</button>
+        <button className="topnav-btn" onClick={handleProfileClick}>Profile</button>
+        {!isSignedIn && (
+          <button className="topnav-btn" onClick={() => navigate('/signin')}>Login</button>
+        )}
+      </div>
+    </nav>
   );
 }

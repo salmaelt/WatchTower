@@ -4,9 +4,9 @@ body, html {
 }
 .homepage-container {
   background: darkolivegreen;
-  width: 430px;
-  min-height: 932px;
-  margin: 0 auto;
+  width: 100vw;
+  min-height: 100vh;
+  margin: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -40,8 +40,8 @@ body, html {
 
 @media screen and (min-width: 800px) {
   .homepage-container {
-    width: 600px;
-    min-height: 700px;
+    width: 100vw;
+    min-height: 100vh;
     padding: 3rem;
     gap: 3rem;
   }

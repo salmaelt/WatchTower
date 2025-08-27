@@ -7,7 +7,9 @@
 }
 
 .dash-wrap{
-  padding: 90px 16px 90px; 
+  padding: 0 32px;
+  width: 100vw;
+  min-height: 100vh;
 }
 
 .dash-header h2{
@@ -55,7 +57,9 @@
 }
 
 .report-wrap{
-  padding: 80px 12px 90px;
+  padding: 0 32px;
+  width: 100vw;
+  min-height: 100vh;
 }
 
 .map-card{
@@ -65,18 +69,29 @@
   box-shadow: 0 2px 10px rgba(0,0,0,.15);
   padding: 8px;
   margin-bottom: 12px;
+  width: 90vw;
+  left: 40px;
+  position: relative;
+  margin-top: 90px;
+  z-index: 1; /* Ensure map is below navbar */
 }
 
 .map-shell{ 
-  width:100%; 
-  height: 260px; 
-  border-radius: 8px; 
+  width:89vw; 
+  height: 500px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  margin: 24px 0;
   overflow: hidden; 
+  position: relative;
+  z-index: 1; /* Ensure map is below navbar */
 }
 
 .map-shell .leaflet-container{ 
   width:100%; 
   height:100%; 
+  position: relative !important;
+  z-index: 1 !important; /* Ensure map is below navbar */
 }
 .map-actions{
   display:flex; 
@@ -119,6 +134,9 @@
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0,0,0,.12);
   padding: 12px;
+  width: 90vw;
+  left: 40px;
+  position: relative;
 }
 .report-card h3{ 
   font-size:16px; 
@@ -303,4 +321,8 @@
   margin-bottom: 10px;
   padding: 10px;
   border-radius: 6px;
+}
+
+.topnav-container {
+  z-index: 100;
 }

@@ -22,10 +22,14 @@ export default function LiveReports() {
 
   return (
     <div className="phonescreen">
-      <h2>WatchTower</h2>
+      <BottomNavBar isSignedIn={isSignedIn} />
+      
+      
 
       <div className="report-wrap">
+       <h2>Live Reports</h2>
         <section className="map-card">
+           
           <div className="map-shell">
             <MapContainer
               center={[51.5072, -0.1276]}
@@ -56,7 +60,7 @@ export default function LiveReports() {
         </section>
 
         <section className="form-list">
-          <aside className="recent-card" style={{ width:"100%" }}>
+          <aside className="recent-card" style={{ width:"90%", margin:"0 50px 25px" }}>
             <h3>Latest reports</h3>
             <div className="recent-list">
               {reports.length === 0 && <p className="muted">Nothing yet. Submit a report to see it here.</p>}

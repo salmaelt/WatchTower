@@ -41,3 +41,46 @@
   background:none; border:none; cursor:pointer;
 }
 .as-button:focus{ outline:2px solid rgba(255,255,255,.4); outline-offset:2px; }
+
+.topnav-container {
+  width: 100%;
+  background: var(--green, #2f6b57);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 64px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-radius: 2rem;
+  margin-top: 20px;
+}
+
+.topnav-brand {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.topnav-links {
+  display: flex;
+  gap: 24px;
+}
+
+.topnav-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+.topnav-btn:hover {
+  background: #245544;
+}

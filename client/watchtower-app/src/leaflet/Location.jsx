@@ -79,47 +79,48 @@ export default function Location() {
 
   return (
     <div className="phonescreen">
-      <h2>WatchTower</h2>
-      <div className="map-box">
-        <MapContainer
-          center={[51.5072, -0.1276]}
-          zoom={13}
-          style={{ width: "100%", height: "100%" }}
-          whenCreated={(map) => (mapRef.current = map)}
-          maxBounds={bounded ? londonBounds : undefined}
-          maxBoundsViscosity={bounded ? 1.0 : undefined}
-          minZoom={10}
-          maxZoom={18}
-        >
-          <TileLayer
-            url={`https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png?api_key=${process.env.REACT_APP_STADIA_KEY ?? "YOUR_KEY"}`}
-            attribution="&copy; OpenStreetMap contributors &copy; Stadia Maps"
-            noWrap={bounded}
-          />
+     
+        <div className="map-box">
+          <MapContainer
+            center={[51.5072, -0.1276]}
+            zoom={13}
+            style={{ width: "100%", height: "100%" }}
+            whenCreated={(map) => (mapRef.current = map)}
+            maxBounds={bounded ? londonBounds : undefined}
+            maxBoundsViscosity={bounded ? 1.0 : undefined}
+            minZoom={10}
+            maxZoom={18}
+          >
+            <TileLayer
+              url={`https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png?api_key=${process.env.REACT_APP_STADIA_KEY ?? "YOUR_KEY"}`}
+              attribution="&copy; OpenStreetMap contributors &copy; Stadia Maps"
+              noWrap={bounded}
+            />
 
-          {markers.map((m) => (
-            <Marker key={m.id} position={m.geocode} icon={custIcon}>
-              <Popup>{m.popUp}</Popup>
-            </Marker>
-          ))}
+            {markers.map((m) => (
+              <Marker key={m.id} position={m.geocode} icon={custIcon}>
+                <Popup>{m.popUp}</Popup>
+              </Marker>
+            ))}
 
-          {me?.lat && me?.lng && (
-            <>
-              {typeof me.accuracy === "number" && me.accuracy > 0 && (
-                <Circle center={[me.lat, me.lng]} radius={me.accuracy}
-                        pathOptions={{ color: "#4ab62c", weight: 1, fillOpacity: 0.15 }} />
-              )}
-              <CircleMarker center={[me.lat, me.lng]} radius={6}
-                            pathOptions={{ color: "#305d2d", fill: true, fillOpacity: 1 }} />
-            </>
-          )}
-        </MapContainer>
+            {me?.lat && me?.lng && (
+              <>
+                {typeof me.accuracy === "number" && me.accuracy > 0 && (
+                  <Circle center={[me.lat, me.lng]} radius={me.accuracy}
+                          pathOptions={{ color: "#4ab62c", weight: 1, fillOpacity: 0.15 }} />
+                )}
+                <CircleMarker center={[me.lat, me.lng]} radius={6}
+                              pathOptions={{ color: "#305d2d", fill: true, fillOpacity: 1 }} />
+              </>
+            )}
+          </MapContainer>
 
-        <div className="map-ui">
-          <button className="map-btn" onClick={handleSeeLive}>See live location</button>
-          {!bounded && <button className="map-btn" onClick={handleBackToLondon}>Back to London</button>}
-        </div>
-      </div>
+          <div className="map-ui">
+            <button className="map-btn" onClick={handleSeeLive}>See live location</button>
+            {!bounded && <button className="map-btn" onClick={handleBackToLondon}>Back to London</button>}
+          </div>
+          </div>
+      
 
       <div className="actions">
         <button className="report-btn" onClick={handleReportNow} aria-label="Report live now">
