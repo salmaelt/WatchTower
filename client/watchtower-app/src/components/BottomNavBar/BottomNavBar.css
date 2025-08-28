@@ -45,42 +45,45 @@
 .topnav-container {
   width: 100%;
   background: var(--green, #2f6b57);
-  margin-bottom: 20px;
+  margin: 20px auto 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 32px;
-  height: 64px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 10px 18px;
+  height: 56px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
   position: sticky;
   top: 0;
   z-index: 100;
-  border-radius: 2rem;
+  border-radius: 18px;
   margin-top: 20px;
 }
 
 .topnav-brand {
   color: #fff;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: bold;
   cursor: pointer;
 }
 
 .topnav-links {
   display: flex;
-  gap: 24px;
+  gap: 10px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 4px;
 }
 
 .topnav-btn {
   background: none;
   border: none;
   color: #fff;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  padding: 8px 16px;
-  border-radius: 6px;
-  transition: background 0.2s;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: background 0.2s, transform .05s ease;
 }
 .topnav-btn:hover {
-  background: #245544;
+  background: rgba(255,255,255,0.14);
 }

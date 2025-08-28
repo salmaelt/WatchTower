@@ -4,12 +4,13 @@ import "./Location.css";
 
 import { MapContainer, TileLayer, Marker, Popup, Circle, CircleMarker } from "react-leaflet";
 import L from "leaflet";
-
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useGeoLocation from "../hooks/GeoLocation";
 import BottomNavBar from "../components/BottomNavBar/BottomNavBar";
+import SafetyTips from "../components/SafetyTips";
 import markerPng from "../img/marker.png";
+import { getReports as fetchReports } from "../api/reports";
 import { useAuth } from "../api/AuthContext";
 
 const custIcon = L.icon({ iconUrl: markerPng, iconSize: [38, 38], iconAnchor: [19, 38] });
@@ -19,6 +20,10 @@ const londonBounds = [
   [51.70,  0.33],
 ];
 
+function boundsToBbox(bounds) {
+  const [[minLat, minLng], [maxLat, maxLng]] = bounds;
+  return `${minLng},${minLat},${maxLng},${maxLat}`;
+}
 
 export default function Location() {
   const mapRef = useRef(null);
@@ -28,6 +33,7 @@ export default function Location() {
   const { token } = useAuth();
   const isSignedIn = !!token;
   const geo = useGeoLocation();
+  const { token } = useAuth?.() || {};
 
   /* WHEN API IS CONNECTED REPLACE CONT MARKERS WITH THIS
     import useMarkers from "../hooks/Markers";
@@ -41,11 +47,59 @@ export default function Location() {
     ))}
   */
 
-  const markers = useMemo(() => ([
-    { id: 1, geocode: [51.5014, -0.1419], popUp: "Buckingham Palace" },
-    { id: 2, geocode: [51.5152, -0.1419], popUp: "Oxford Circus" },
-    { id: 3, geocode: [51.5132, -0.1589], popUp: "Marble Arch" },
-  ]), []);
+  const [reports, setReports] = useState([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadForBounds(b) {
+      try {
+        const bbox = boundsToBbox(b || londonBounds);
+        const geojson = await fetchReports({ bbox }, token || localStorage.getItem("token"));
+        const items = (geojson?.features || []).map((f) => ({
+          id: f.properties?.id ?? `${f.geometry?.coordinates?.join(",")}`,
+          lat: f.geometry?.coordinates?.[1],
+          lng: f.geometry?.coordinates?.[0],
+          description: f.properties?.description || "Report",
+        })).filter((r) => typeof r.lat === "number" && typeof r.lng === "number");
+        if (!cancelled) setReports(items);
+      } catch (e) {
+        if (!cancelled) setError("Failed to load reports.");
+      }
+    }
+
+    const map = mapRef.current;
+    if (!map) {
+      loadForBounds(londonBounds);
+    } else {
+      const b = map.getBounds();
+      const current = [[b.getSouth(), b.getWest()], [b.getNorth(), b.getEast()]];
+      loadForBounds(current);
+    }
+
+    return () => { cancelled = true; };
+  }, [token]);
+
+  const handleMoveEnd = () => {
+    const map = mapRef.current;
+    if (!map) return;
+    const b = map.getBounds();
+    const current = [[b.getSouth(), b.getWest()], [b.getNorth(), b.getEast()]];
+    // fire and forget, don't duplicate code
+    (async () => {
+      try {
+        const bbox = boundsToBbox(current);
+        const geojson = await fetchReports({ bbox }, token || localStorage.getItem("token"));
+        const items = (geojson?.features || []).map((f) => ({
+          id: f.properties?.id ?? `${f.geometry?.coordinates?.join(",")}`,
+          lat: f.geometry?.coordinates?.[1],
+          lng: f.geometry?.coordinates?.[0],
+          description: f.properties?.description || "Report",
+        })).filter((r) => typeof r.lat === "number" && typeof r.lng === "number");
+        setReports(items);
+      } catch {}
+    })();
+  };
 
   const handleSeeLive = async () => {
     const map = mapRef.current;
@@ -83,7 +137,8 @@ export default function Location() {
 
   return (
     <div className="phonescreen">
-     
+      <BottomNavBar isSignedIn={isSignedIn} />
+
         <div className="map-box">
           <MapContainer
             center={[51.5072, -0.1276]}
@@ -94,6 +149,8 @@ export default function Location() {
             maxBoundsViscosity={bounded ? 1.0 : undefined}
             minZoom={10}
             maxZoom={18}
+           // whenCreated={(map) => (mapRef.current = map)}
+            onmoveend={handleMoveEnd}
           >
             <TileLayer
               url={`https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png?api_key=${process.env.REACT_APP_STADIA_KEY ?? "YOUR_KEY"}`}
@@ -101,9 +158,15 @@ export default function Location() {
               noWrap={bounded}
             />
 
-            {markers.map((m) => (
-              <Marker key={m.id} position={m.geocode} icon={custIcon}>
-                <Popup>{m.popUp}</Popup>
+            {reports.map((r) => (
+              <Marker key={r.id} position={[r.lat, r.lng]} icon={custIcon}>
+                <Popup>
+                  <div style={{display:"flex", flexDirection:"column", gap:6}}>
+                    <strong>{r.description}</strong>
+                    <span>{r.locationText || `${r.lat.toFixed(4)}, ${r.lng.toFixed(4)}`}</span>
+                    {/* Read-only on the homepage; upvote available on /live */}
+                  </div>
+                </Popup>
               </Marker>
             ))}
 
@@ -135,7 +198,9 @@ export default function Location() {
         </button>
       </div>
 
-      <BottomNavBar isSignedIn={isSignedIn} />
+      <div style={{ padding: "12px", position: "relative", zIndex: 1102 }}>
+        <SafetyTips />
+      </div>
     </div>
   );
 }

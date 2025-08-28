@@ -1,5 +1,5 @@
 import "leaflet/dist/leaflet.css";
-import "../../App";
+import "../../App.css";
 import "./Report.css";
 
 import {
@@ -18,8 +18,9 @@ import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
 import useGeoLocation from "../../hooks/GeoLocation";
 import { createReport } from "../../api/watchtowerApi";
 import { useAuth } from "../../api/AuthContext";
-import { getReports } from "../../api/reports";
 import markerPng from "../../img/marker.png";
+import { useEffect } from "react";
+import SafetyTips from "../../components/SafetyTips";
 
 const custIcon = L.icon({
   iconUrl: markerPng,
@@ -63,8 +64,7 @@ export default function Report() {
   const [me, setMe] = useState(null); // 
   const [error, setError] = useState("");
 
-  //add actual api here from backend
-  const reports = useMemo(() => getReports(), []);
+  // Reports list not needed on create page; removed erroneous async call
 
   const handleUseMyLocation = async () => {
     try {
@@ -104,7 +104,8 @@ export default function Report() {
         lng: picked.lng,
       };
       await createReport(reportData, token);
-      navigate(`/report/thanks`);
+      // after successful submit, navigate to live to see it reflected
+      navigate(`/live`);
     } catch (err) {
       setError("Failed to submit report.");
     }
@@ -277,7 +278,10 @@ export default function Report() {
         </div>
       </div>
 
-      
+      <div style={{ padding: "0 12px 12px" }}>
+        <SafetyTips />
+      </div>
+
     </div>
   );
 }

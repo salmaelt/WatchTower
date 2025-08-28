@@ -28,6 +28,7 @@ export default function BottomNavBar({ isSignedIn: propSignedIn }) {
       <div className="topnav-brand" onClick={() => navigate('/')}>WatchTower</div>
       <div className="topnav-links">
         <button className="topnav-btn" onClick={() => navigate('/')}>Home</button>
+        <button className="topnav-btn" onClick={() => navigate('/live')}>Live Reports</button>
         <button className="topnav-btn" onClick={() => navigate('/report')}>New Report</button>
         <button className="topnav-btn" onClick={handleProfileClick}>Profile</button>
         {!isSignedIn && (

@@ -1,5 +1,5 @@
 import "leaflet/dist/leaflet.css";
-import "../../App";
+import "../../App.css";
 import "./Report.css";
 
 import {
