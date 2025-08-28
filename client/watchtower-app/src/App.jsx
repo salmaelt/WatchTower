@@ -11,6 +11,7 @@ import UserDashboard from "./Pages/userdashboard/UserProfile";
 import Report from "./Pages/report/Report";
 import ReportThanks from "./Pages/report/ReportThanks";
 import EditReport from "./Pages/report/EditReport";
+import ReportDetail from "./Pages/report/ReportDetail";
 import { useAuth } from "./api/AuthContext";
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="/report" element={<Report />} />
         <Route path="/report/thanks" element={<ReportThanks />} />
         <Route path="/live" element={<LiveReports />} />
+        <Route path="/live/:id" element={<ReportDetail />} />
         <Route
           path="/account"
           element={isSignedIn ? <UserDashboard /> : <AccountGate />}

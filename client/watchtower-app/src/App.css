@@ -52,7 +52,7 @@ body {
   height: 500px !important;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  margin: 24px 0;
+  margin: 0  0  24px  0;
 }
 
 /* Navbar at top, full width */

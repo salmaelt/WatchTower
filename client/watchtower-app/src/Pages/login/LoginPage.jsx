@@ -46,7 +46,7 @@ export default function LoginPage() {
       setError(err.error || "Login failed. Please check your credentials.");
     } finally {
       setLoading(false);
->>>>>>> dev_be_hk
+
     }
   }
 

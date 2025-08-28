@@ -33,7 +33,7 @@ export default function Location() {
   const { token } = useAuth();
   const isSignedIn = !!token;
   const geo = useGeoLocation();
-  const { token } = useAuth?.() || {};
+  // optional chaining variant not needed; token already declared above
 
   /* WHEN API IS CONNECTED REPLACE CONT MARKERS WITH THIS
     import useMarkers from "../hooks/Markers";

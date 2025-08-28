@@ -5,13 +5,11 @@ import "./Report.css";
 import { MapContainer, TileLayer, Marker, Popup, Circle, CircleMarker } from "react-leaflet";
 import L from "leaflet";
 import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
-import { useEffect, useState } from "react";
-import { getReports } from "../../api/reports";
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../api/AuthContext";
 import SafetyTips from "../../components/SafetyTips";
 import { getReports as fetchReports, upvoteReport, removeUpvoteReport } from "../../api/reports";
-import { useAuth } from "../../api/AuthContext";
-import React from "react";
 import useGeoLocation from "../../hooks/GeoLocation";
 import markerPng from "../../img/marker.png";
 
@@ -31,39 +29,21 @@ function boundsToBbox(bounds) {
 
 export default function LiveReports() {
   const { token } = useAuth();
-  const isSignedIn = !!token;
+  const isSignedIn = !!(token || localStorage.getItem("token"));
+  const navigate = useNavigate();
   const [reports, setReports] = useState([]);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    async function fetchReports() {
-      try {
-        const data = await getReports({}, token);
-        setReports(data.features || []);
-        console.log("Fetched reports successfully");
-      } catch (err) {
-        setError("Failed to fetch reports");
-        console.log("Failed to fetch reports", err);
-      }
-    }
-    fetchReports();
-  }, [token]);
-  const { token } = useAuth();
-  const isSignedIn = !!(token || localStorage.getItem("token"));
-  const [reports, setReports] = React.useState([]);
-  const [error, setError] = React.useState("");
-  const [me, setMe] = React.useState(null);
-  const [bounded, setBounded] = React.useState(true);
-  const mapRef = React.useRef(null);
+  const [me, setMe] = useState(null);
+  const [bounded, setBounded] = useState(true);
+  const mapRef = useRef(null);
   const geo = useGeoLocation();
 
-  React.useEffect(() => {
+  useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
         const bbox = boundsToBbox(londonBounds);
         const geojson = await fetchReports({ bbox }, token || localStorage.getItem("token"));
-        // Expecting a FeatureCollection of point features
         const currentUserId = Number(localStorage.getItem("userId"));
         const items = (geojson?.features || []).map((f) => ({
           id: f.properties?.id ?? `${f.geometry?.coordinates?.join(",")}`,
@@ -209,20 +189,23 @@ export default function LiveReports() {
             <h3>Latest reports</h3>
             <div className="recent-list">
               {error && <p className="error">{error}</p>}
-              {reports.length === 0 && !error && <p className="muted">Nothing yet. Submit a report to see it here.</p>}
-              {reports.map(r => (
-                <div className="recent-item" key={r.id || r.properties?.id}>
-                  <div className="ri-title">{r.properties?.description || r.description}</div>
-                  <div className="ri-meta">
-                    {new Date(r.properties?.occurredAt || r.time || r.createdAt).toLocaleString()}  b7 {r.properties?.locationText || r.locationText || (r.geometry ? `${r.geometry.coordinates[1].toFixed(4)}, ${r.geometry.coordinates[0].toFixed(4)}` : "")}
-                <div className="recent-item" key={r.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12 }}>
+              {reports.length === 0 && !error && (
+                <p className="muted">Nothing yet. Submit a report to see it here.</p>
+              )}
+              {reports.map((r) => (
+                <div
+                  className="recent-item"
+                  key={r.id}
+                  onClick={() => navigate(`/live/${r.id}`)}
+                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, cursor: "pointer" }}
+                >
                   <div>
                     <div className="ri-title">{r.description}</div>
                     <div className="ri-meta">
                       {new Date(r.time || r.createdAt).toLocaleString()} · {r.locationText || `${r.lat.toFixed(4)}, ${r.lng.toFixed(4)}`}
                     </div>
                   </div>
-                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }} onClick={(e) => e.stopPropagation()}>
                     <span className="ri-meta" aria-label="Total upvotes">{r.upvotes}</span>
                     <button
                       onClick={() => handleToggleUpvote(r.id, r.upvotedByMe)}
@@ -230,7 +213,7 @@ export default function LiveReports() {
                       disabled={r.ownReport}
                       title={r.ownReport ? "You cannot upvote your own report" : undefined}
                     >
-                      {r.ownReport ? "Your report" : (r.upvotedByMe ? "Remove Upvote" : "Upvote")}
+                      {r.ownReport ? "Your report" : r.upvotedByMe ? "Remove Upvote" : "Upvote"}
                     </button>
                   </div>
                 </div>
@@ -246,7 +229,6 @@ export default function LiveReports() {
         <SafetyTips />
       </div>
 
-     
     </div>
   );
 }
