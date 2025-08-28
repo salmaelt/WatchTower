@@ -20,9 +20,6 @@ export default function SafetyTips() {
         <li>Enable device tracking and remote‑wipe. Record your device IMEI/serial number.</li>
         <li>Report incidents promptly to help others avoid hotspots.</li>
       </ul>
-      <p className="muted" style={{ margin: "10px 0 0", fontSize: 12, opacity: 0.8 }}>
-        Tips are informational only and not a substitute for official guidance.
-      </p>
     </footer>
   );
 }

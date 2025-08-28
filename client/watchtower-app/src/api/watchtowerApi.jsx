@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:5051";
+const BASE_URL = "https://watchtower-api-backend.onrender.com";
 
 // Helper to build headers
 function getHeaders(token, contentType = "application/json") {
