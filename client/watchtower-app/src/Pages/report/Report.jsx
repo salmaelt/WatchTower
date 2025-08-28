@@ -16,7 +16,7 @@ import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
 import useGeoLocation from "../../hooks/GeoLocation";
-import { createReport } from "../../api/watchtowerApi";
+// Bypass any stale client modules and call backend directly
 import { useAuth } from "../../api/AuthContext";
 import markerPng from "../../img/marker.png";
 import { useEffect } from "react";
@@ -103,7 +103,19 @@ export default function Report() {
         lat: picked.lat,
         lng: picked.lng,
       };
-      await createReport(reportData, token);
+      const res = await fetch("https://watchtower-api-backend.onrender.com/reports", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(reportData),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.title || data?.error || "Failed to submit report");
+      }
+      await res.json().catch(() => null);
       // after successful submit, navigate to live to see it reflected
       navigate(`/live`);
     } catch (err) {

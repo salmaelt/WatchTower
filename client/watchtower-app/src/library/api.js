@@ -1,4 +1,4 @@
-const API_BASE = import.meta?.env?.VITE_API_URL || process.env.REACT_APP_API_URL || "http://localhost:5051";
+const API_BASE = "https://watchtower-api-backend.onrender.com";
 
 export async function fetchMarkers() {
   const res = await fetch(`${API_BASE}/markers`);

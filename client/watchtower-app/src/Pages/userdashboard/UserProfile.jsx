@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNavBar from "../../components/BottomNavBar/BottomNavBar";
-import { getReports, deleteReport } from "../../api/watchtowerApi";
+// Avoid stale base URLs by hitting backend directly for listing; keep delete via API module
+import { deleteReport } from "../../api/watchtowerApi";
 import { useAuth } from "../../api/AuthContext";
 import "./UserProfile.css";
 
@@ -14,9 +15,18 @@ export default function UserProfile() {
   useEffect(() => {
     async function fetchReports() {
       try {
-        // Example bbox for London, adjust as needed
         const bbox = "-0.51,51.28,0.33,51.70";
-        const geojson = await getReports({ bbox }, token);
+        const url = new URL("https://watchtower-api-backend.onrender.com/reports");
+        url.searchParams.set("bbox", bbox);
+        const res = await fetch(url.toString(), {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/geo+json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        if (!res.ok) throw await res.json();
+        const geojson = await res.json();
         // Filter reports by current user
         setMyReports(
           geojson.features.filter(
