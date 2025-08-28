@@ -1,21 +1,18 @@
 # Demo Script:
 
-### On Phone 
-- Boot App
-- Show Markers
-- Show map Snapping to Markers
-- Show trying to create report, but getting denied
-- Register user (Tom or just random name)?, show validation
-- Show profile screen
-- Show map screen again, 
-- Click a marker (by Mohammed's account)
-- Leave an upvote and Comment
-- Create a report, at LaFosse Office (lets say stolen by Salma, or someone room knows in coffee room)
-- Try to upvote own post, log off 
+### On Phone: 
+1. Review homepage and investigate a few markers
+2. Go onto a particular marker and attempt to comment/upvote
+3. Upon failure, create an account.
+4. Go back to marker and upvote / comment
+5. Create your own report
+6. Go to dashboard and realise a mispelling on your report
+7. Edit report, and then realise you need to delete report.
+8. Create a new report (sped up)
 
 ### On Web
-- Log in as Mohammed
-- Click on the marker Tom just created
-- Upvote, leave Comment
-- Look at my-reports -> report Tom looked at 
-- See that his comment and upvote is there, reply 
+1. As a guest start on homepage and go to live reports
+2. View live reports
+3. Press a few reports and read the comments.
+4. Go back to homepage and zoom into the area you want to travel to.
+5. Press marker and read report.
